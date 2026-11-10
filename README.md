@@ -1,0 +1,1 @@
+Project for QReader application for Cafes
