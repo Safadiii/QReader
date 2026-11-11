@@ -12,7 +12,7 @@ class OrderRepository:
     def get_store(self, store_id: uuid.UUID):
         return self.db.get(Store, store_id)
 
-    def get_by_id(self, order_id: uuid.UUID):
+    def get_by_id(self, order_id: uuid.UUID) -> Order | None:
         return self.db.get(Order, order_id)
 
     def get_all(self, store_id: uuid.UUID):
