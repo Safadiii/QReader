@@ -21,6 +21,7 @@ class OrderResponse(BaseModel):
     created_at: datetime
     ready_at: datetime | None = None
     completed_at: datetime | None = None
+    customer_coming_at: datetime | None = None
 
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus

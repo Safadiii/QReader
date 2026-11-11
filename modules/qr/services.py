@@ -11,7 +11,7 @@ from fastapi import HTTPException, status
 from qrcode.image.svg import SvgPathFillImage
 from sqlalchemy.orm import Session
 
-from database.schema import Order, QRCode
+from database.schema import Order, OrderStatus, QRCode
 from .repository import QRRepository
 from .schemas import PublicOrderResponse, QRCodeResponse
 
@@ -84,6 +84,7 @@ class QRService:
             created_at=qr.created_at,
             expires_at=qr.expires_at,
             revoked_at=qr.revoked_at,
+            scanned_at=qr.scanned_at,
             is_active=is_active(qr),
         )
 
@@ -151,6 +152,7 @@ class QRService:
             qr.created_at = now
             qr.expires_at = now + qr_ttl()
             qr.revoked_at = None
+            qr.scanned_at = None
             self.db.flush()
             self.db.commit()
             return self._response(qr)
@@ -176,7 +178,8 @@ class QRService:
             self.db.rollback()
             raise
 
-    def track(self, token: str) -> PublicOrderResponse:
+    def _resolve(self, token: str) -> tuple[QRCode, Order]:
+        """Find the active QR and its order for a public token, or raise 404/410."""
         # Limit excessively long untrusted path parameters without a DB lookup.
         if len(token) > 128 or not token:
             raise self._not_found()
@@ -188,8 +191,49 @@ class QRService:
         order = self.repository.get_order(qr.order_id)
         if order is None:
             raise self._not_found()
+        return qr, order
+
+    @staticmethod
+    def _public(order: Order) -> PublicOrderResponse:
         return PublicOrderResponse(
+            store_name=order.store.name,
             order_number=order.order_number,
             status=order.status,
             ready_at=order.ready_at,
+            customer_coming_at=order.customer_coming_at,
         )
+
+    def track(self, token: str) -> PublicOrderResponse:
+        _, order = self._resolve(token)
+        return self._public(order)
+
+    def scan(self, token: str) -> PublicOrderResponse:
+        """Record the first time a customer opens the link. Safe to call again."""
+        try:
+            qr, order = self._resolve(token)
+            if qr.scanned_at is None:
+                qr.scanned_at = datetime.now(timezone.utc)
+                self.db.commit()
+            return self._public(order)
+        except Exception:
+            self.db.rollback()
+            raise
+
+    def coming(self, token: str) -> PublicOrderResponse:
+        """Record that the customer is on their way. Only valid once the order is ready."""
+        try:
+            qr, _ = self._resolve(token)
+            order = self.repository.lock_order(qr.order_id)
+            if order is None:
+                raise self._not_found()
+            if order.status != OrderStatus.READY:
+                raise HTTPException(status_code=409, detail="Order is not ready for collection")
+            if order.customer_coming_at is None:
+                order.customer_coming_at = datetime.now(timezone.utc)
+                self.db.commit()
+            else:
+                self.db.rollback()
+            return self._public(order)
+        except Exception:
+            self.db.rollback()
+            raise

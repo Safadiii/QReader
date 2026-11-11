@@ -183,6 +183,8 @@ class Order(Base):
     )
     ready_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Set when the customer taps "I'm coming" on their phone after the order is ready.
+    customer_coming_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     store: Mapped["Store"] = relationship(back_populates="orders")
     creator: Mapped["User | None"] = relationship(
@@ -216,6 +218,8 @@ class QRCode(Base):
     )
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # First time a customer opened the tracking link for the current token.
+    scanned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     order: Mapped["Order"] = relationship(back_populates="qr_code")
 

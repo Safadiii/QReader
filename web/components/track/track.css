@@ -1,0 +1,328 @@
+.qt-stage {
+  --card: min(78vw, 46dvh, 360px);
+  --ink: #eceef1;
+  --muted: #8d929b;
+  --line: rgba(236, 238, 241, 0.16);
+  --ok: #7fe6ae;
+  --paper: #f3f4f6;
+  --paper-ink: #0b0c0e;
+
+  position: relative;
+  flex: 1;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  color: var(--ink);
+  background: #0a0b0d;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Same graphite backdrop as the till screen. */
+.qt-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 50% at 50% 42%, rgba(170, 182, 200, 0.2), rgba(120, 130, 146, 0.05) 55%, transparent 78%),
+    linear-gradient(180deg, #121317 0%, #0a0b0d 60%, #070809 100%);
+}
+
+.qt-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 64px;
+  padding: max(20px, env(safe-area-inset-top)) 22px 0;
+}
+
+.qt-store {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.qt-offline {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.qt-center {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 12px 0;
+}
+
+/* ------------------------------------------------------------ order card */
+
+.qt-card {
+  width: var(--card);
+  height: var(--card);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: 6%;
+  border-radius: 7%;
+  background: var(--paper);
+  color: var(--paper-ink);
+  text-align: center;
+  opacity: 0;
+  transition: box-shadow 0.4s ease;
+}
+
+.qt-card[data-shown="true"] {
+  opacity: 1;
+}
+
+.qt-label {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: calc(var(--card) * 0.04);
+  letter-spacing: 0.04em;
+  color: #5d626b;
+}
+
+.qt-number {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: calc(var(--card) * 0.46);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.qt-status {
+  margin-top: calc(var(--card) * 0.02);
+  font-size: calc(var(--card) * 0.075);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.qt-statusAlt {
+  font-size: calc(var(--card) * 0.045);
+  color: #5d626b;
+}
+
+.qt-steps {
+  display: flex;
+  gap: 6px;
+  margin-top: calc(var(--card) * 0.06);
+}
+
+.qt-steps li {
+  width: calc(var(--card) * 0.13);
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(11, 12, 14, 0.14);
+  transition: background 0.4s ease;
+}
+
+.qt-steps li[data-done="true"] {
+  background: var(--paper-ink);
+}
+
+.qt-stage[data-status="ready"] .qt-card {
+  box-shadow: 0 0 0 4px var(--ok), 0 0 60px rgba(127, 230, 174, 0.35);
+}
+
+.qt-stage[data-status="ready"] .qt-steps li[data-done="true"] {
+  background: #17a05c;
+}
+
+.qt-stage[data-status="cancelled"] .qt-number {
+  color: #9a9ea6;
+  text-decoration: line-through;
+  text-decoration-thickness: 0.05em;
+}
+
+/* --------------------------------------------------------------- actions */
+
+.qt-actions {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 12px;
+  min-height: 190px;
+  padding: 8px 22px max(28px, env(safe-area-inset-bottom));
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.qt-actions[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+.qt-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: min(100%, 360px);
+  min-height: 56px;
+  padding: 0 22px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.qt-button:active {
+  transform: scale(0.98);
+}
+
+.qt-button:focus-visible,
+.qt-link:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.qt-button[data-on="true"] {
+  border-color: var(--ok);
+  color: var(--ok);
+  background: rgba(127, 230, 174, 0.08);
+}
+
+.qt-primary {
+  border-color: var(--ok);
+  background: var(--ok);
+  color: #06140c;
+  font-weight: 600;
+  font-size: 19px;
+  min-height: 62px;
+}
+
+.qt-primary:disabled {
+  opacity: 0.6;
+}
+
+.qt-link {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.qt-hint {
+  max-width: 34ch;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+  text-align: center;
+}
+
+.qt-confirm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--ok);
+}
+
+.qt-confirm small {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.qt-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.qt-confirm .qt-icon {
+  width: 30px;
+  height: 30px;
+}
+
+/* --------------------------------------------------------------- problem */
+
+.qt-problem {
+  position: relative;
+  z-index: 1;
+  grid-row: 1 / -1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.qt-title {
+  font-size: clamp(24px, 7vw, 34px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.qt-alt {
+  max-width: 28ch;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ foil */
+
+.qt-foil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- motion */
+
+@media (prefers-reduced-motion: no-preference) {
+  .qt-stage[data-ringing="true"] .qt-card {
+    animation: qt-ring 0.9s ease-in-out infinite;
+  }
+  .qt-stage[data-ringing="true"] .qt-primary {
+    animation: qt-pulse 1.3s ease-out infinite;
+  }
+}
+
+@keyframes qt-ring {
+  0%, 100% { transform: rotate(0); }
+  10%, 30% { transform: rotate(-2.2deg); }
+  20%, 40% { transform: rotate(2.2deg); }
+  50% { transform: rotate(0); }
+}
+
+@keyframes qt-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(127, 230, 174, 0.55); }
+  100% { box-shadow: 0 0 0 18px rgba(127, 230, 174, 0); }
+}

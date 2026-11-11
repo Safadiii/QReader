@@ -54,3 +54,22 @@ def track_order(token: str, response: Response, db: Session = Depends(get_db)):
     response.headers["Cache-Control"] = "no-store"
     response.headers["Referrer-Policy"] = "no-referrer"
     return QRService(db).track(token)
+
+
+def _no_store(response: Response) -> None:
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+
+
+@router.post("/track/{token}/scan", response_model=PublicOrderResponse)
+def scan_order(token: str, response: Response, db: Session = Depends(get_db)):
+    """Called by the customer's phone when it opens the tracking page."""
+    _no_store(response)
+    return QRService(db).scan(token)
+
+
+@router.post("/track/{token}/coming", response_model=PublicOrderResponse)
+def customer_coming(token: str, response: Response, db: Session = Depends(get_db)):
+    """The customer tells the kitchen they are on their way to collect a ready order."""
+    _no_store(response)
+    return QRService(db).coming(token)

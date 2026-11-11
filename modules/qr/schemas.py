@@ -11,10 +11,13 @@ class QRCodeResponse(BaseModel):
     created_at: datetime
     expires_at: datetime | None
     revoked_at: datetime | None
+    scanned_at: datetime | None
     is_active: bool
 
 
 class PublicOrderResponse(BaseModel):
+    store_name: str
     order_number: int
     status: OrderStatus
     ready_at: datetime | None
+    customer_coming_at: datetime | None

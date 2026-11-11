@@ -1,0 +1,362 @@
+.qd-stage {
+  --card: clamp(200px, min(40vw, 40dvh), 420px);
+  --ink: #eceef1;
+  --muted: #8d929b;
+  --line: rgba(236, 238, 241, 0.16);
+  --ok: #7fe6ae;
+
+  position: relative;
+  flex: 1;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  color: var(--ink);
+  background: #0a0b0d;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  user-select: none;
+}
+
+/* Graphite backdrop: a cool pool of light behind the card, dark at the edges. */
+.qd-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 55% at 50% 46%, rgba(170, 182, 200, 0.2), rgba(120, 130, 146, 0.05) 55%, transparent 75%),
+    linear-gradient(180deg, #121317 0%, #0a0b0d 60%, #070809 100%);
+}
+
+.qd-header,
+.qd-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: clamp(18px, 3.2dvh, 36px) clamp(20px, 4vw, 56px);
+}
+
+.qd-store {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: clamp(20px, 2.6dvh, 30px);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.qd-orderTag {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: clamp(12px, 1.6dvh, 15px);
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.qd-orderTag b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.qd-center {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+}
+
+/* ---------------------------------------------------------------- QR card */
+
+.qd-cardWrap {
+  position: relative;
+  width: var(--card);
+  height: var(--card);
+  transition:
+    opacity 0.25s ease,
+    transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.qd-cardWrap[data-hidden="true"] {
+  opacity: 0;
+  transition: none;
+}
+
+.qd-card {
+  position: absolute;
+  inset: 0;
+  padding: 10%;
+  border-radius: 7%;
+  background: #fff;
+  overflow: hidden;
+}
+
+.qd-qr {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: #0b0c0e;
+}
+
+/* Corner brackets framing the card. */
+.qd-bracket {
+  position: absolute;
+  width: 11%;
+  height: 11%;
+  border: 2px solid var(--ink);
+  opacity: 0.85;
+}
+.qd-bracket:nth-child(1) { top: -6%; left: -6%; border-right: 0; border-bottom: 0; border-top-left-radius: 14px; }
+.qd-bracket:nth-child(2) { top: -6%; right: -6%; border-left: 0; border-bottom: 0; border-top-right-radius: 14px; }
+.qd-bracket:nth-child(3) { bottom: -6%; left: -6%; border-right: 0; border-top: 0; border-bottom-left-radius: 14px; }
+.qd-bracket:nth-child(4) { bottom: -6%; right: -6%; border-left: 0; border-top: 0; border-bottom-right-radius: 14px; }
+
+/* A thin band of light that travels down the code. */
+.qd-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 18%;
+  background: linear-gradient(180deg, transparent, rgba(150, 165, 190, 0.22) 80%, rgba(150, 165, 190, 0.5));
+  transform: translateY(-110%);
+  pointer-events: none;
+}
+
+.qd-stage[data-phase="wrapping"] .qd-bracket,
+.qd-stage[data-phase="scanned"] .qd-bracket {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.qd-stage[data-phase="wrapping"] .qd-sweep {
+  display: none;
+}
+
+/* ----------------------------------------------------------------- prompt */
+
+.qd-footer {
+  justify-content: center;
+  text-align: center;
+  padding-bottom: clamp(26px, 6dvh, 72px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.qd-stage:not([data-phase="idle"]) .qd-footer {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.qd-prompt {
+  font-size: clamp(20px, 3.3dvh, 34px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.qd-promptAlt {
+  margin-top: 6px;
+  font-size: clamp(14px, 2dvh, 19px);
+  color: var(--muted);
+}
+
+.qd-stage[data-empty="true"] .qd-footer {
+  opacity: 0;
+}
+
+/* ---------------------------------------------------------------- waiting */
+
+.qd-waiting {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.qd-waitingTitle {
+  font-size: clamp(20px, 3.3dvh, 34px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.qd-waitingAlt {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: clamp(12px, 1.7dvh, 15px);
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
+/* ---------------------------------------------------------------- scanned */
+
+.qd-scanned {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: clamp(10px, 1.8dvh, 18px);
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.qd-stage[data-phase="scanned"] .qd-scanned {
+  opacity: 1;
+}
+
+.qd-check {
+  width: clamp(64px, 11dvh, 104px);
+  height: clamp(64px, 11dvh, 104px);
+}
+.qd-check circle {
+  fill: none;
+  stroke: var(--ok);
+  stroke-width: 2.5;
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+}
+.qd-check path {
+  fill: none;
+  stroke: var(--ok);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 36;
+  stroke-dashoffset: 36;
+}
+.qd-stage[data-phase="scanned"] .qd-check circle,
+.qd-stage[data-phase="scanned"] .qd-check path {
+  stroke-dashoffset: 0;
+}
+
+.qd-scannedTitle {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: clamp(56px, 13dvh, 132px);
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.qd-scannedLine {
+  font-size: clamp(16px, 2.5dvh, 24px);
+  max-width: 26ch;
+}
+
+.qd-scannedAlt {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: clamp(12px, 1.7dvh, 15px);
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
+/* ------------------------------------------------------------------- foil */
+
+.qd-foil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.qd-demo {
+  position: absolute;
+  z-index: 3;
+  right: 16px;
+  bottom: 16px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  cursor: pointer;
+}
+.qd-demo:hover {
+  color: var(--ink);
+  border-color: rgba(236, 238, 241, 0.4);
+}
+.qd-demo:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ----------------------------------------------------------------- motion */
+
+@media (prefers-reduced-motion: no-preference) {
+  .qd-module {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: moduleIn 0.42s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+  }
+  .qd-finder {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: finderIn 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  }
+
+  .qd-stage[data-phase="idle"] .qd-cardWrap {
+    animation:
+      cardIn 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) both,
+      float 5.5s ease-in-out 0.7s infinite;
+  }
+  .qd-stage[data-phase="idle"] .qd-bracket {
+    animation: bracket 2.8s ease-in-out infinite;
+  }
+  .qd-stage[data-phase="idle"] .qd-sweep {
+    animation: sweep 3.6s cubic-bezier(0.5, 0, 0.3, 1) 1.2s infinite;
+  }
+
+  /* the instant of the scan: the card flinches before the foil takes it */
+  .qd-stage[data-phase="wrapping"] .qd-cardWrap {
+    animation: caught 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  }
+
+  .qd-check circle {
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.6, 0, 0.2, 1) 0.15s;
+  }
+  .qd-check path {
+    transition: stroke-dashoffset 0.35s cubic-bezier(0.3, 0.9, 0.3, 1) 0.6s;
+  }
+  .qd-stage[data-phase="scanned"] .qd-scannedTitle {
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  }
+  .qd-stage[data-phase="scanned"] .qd-scannedLine {
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.34s both;
+  }
+  .qd-stage[data-phase="scanned"] .qd-scannedAlt {
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.44s both;
+  }
+}
+
+@keyframes moduleIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes finderIn {
+  from { transform: scale(0.4) rotate(-20deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes cardIn {
+  from { transform: translateY(28px) scale(0.94); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes bracket {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.12); opacity: 0.45; }
+}
+@keyframes sweep {
+  0% { transform: translateY(-110%); }
+  55%, 100% { transform: translateY(560%); }
+}
+@keyframes caught {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.955); }
+  100% { transform: scale(1); }
+}
+@keyframes rise {
+  from { transform: translateY(26px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
