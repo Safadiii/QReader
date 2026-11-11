@@ -1,4 +1,5 @@
 import uuid
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -27,3 +28,14 @@ class OrderRepository:
 
     def add_history(self, history: OrderStatusHistory):
         self.db.add(history)
+
+    def lock_order(self, order_id: uuid.UUID) -> Order | None:
+        return self.db.scalar(select(Order).where(Order.id == order_id).with_for_update())
+
+    def get_history(self, order_id: UUID) -> list[OrderStatusHistory]:
+        statement = (
+            select(OrderStatusHistory)
+            .where(OrderStatusHistory.order_id == order_id)
+            .order_by(OrderStatusHistory.created_at.asc(), OrderStatusHistory.id.asc())
+        )
+        return list(self.db.scalars(statement).all())

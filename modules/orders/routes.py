@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from database.init_db import get_db
 
-from .schemas import OrderCreate, OrderResponse
+from .schemas import OrderCreate, OrderResponse, OrderStatusUpdate
 from .services import OrderService
 
 
@@ -31,3 +31,9 @@ def get_orders(store_id: uuid.UUID, db: Session = Depends(get_db)):
 def get_order(order_id: uuid.UUID, db: Session = Depends(get_db)):
     service = OrderService(db)
     return service.get_order(order_id)
+
+
+@router.patch("/{order_id}/status", response_model=OrderResponse)
+def update_order_status(order_id: uuid.UUID, data: OrderStatusUpdate, db: Session = Depends(get_db)):
+    service = OrderService(db)
+    return service.update_status(order_id=order_id, new_status=data.status)
