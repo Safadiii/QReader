@@ -1,3 +1,4 @@
+import { reloadTo } from "@/lib/navigate";
 /**
  * Where the customer-facing screen gets its data: this app's /api/display
  * route, which asks the backend for the store's newest order and its QR.
@@ -15,9 +16,9 @@ export type DisplayOrder = {
 };
 
 /** The order to show now, or null when there is nothing to scan. Throws if offline. */
-export async function fetchCurrentOrder(storeId: string | null): Promise<DisplayOrder | null> {
-  const query = storeId ? `?storeId=${encodeURIComponent(storeId)}` : "";
-  const res = await fetch(`/api/display${query}`, { cache: "no-store" });
+export async function fetchCurrentOrder(): Promise<DisplayOrder | null> {
+  const res = await fetch("/api/display", { cache: "no-store" });
+  if (res.status === 401) reloadTo("/login?next=/display");
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error ?? `Display request failed (${res.status})`);
   return body.order ?? null;

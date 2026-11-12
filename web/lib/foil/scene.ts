@@ -38,11 +38,11 @@ const GRAVITY = 5200; // px / s^2
 const LOOSE = 0.18; // how crumpled the bag is before the air is pulled out
 
 /* Arrival timeline (customer's phone), in seconds from the start of the fall. */
-const A_LAND = 0.62; // reaches the centre
-const A_SETTLE = 1.25; // the bounce has died down
-const A_RELEASE = 1.55; // air goes back in, the foil loosens
-const A_OPEN = 1.9; // the seam parts
-const A_DONE = 2.9;
+const A_LAND = 0.9; // reaches the centre
+const A_SETTLE = 1.7; // the bounce has died down
+const A_RELEASE = 2.5; // air goes back in, the foil loosens
+const A_OPEN = 3.0; // the seam parts
+const A_DONE = 4.5;
 
 export type ArriveCallbacks = {
   /** The foil is about to open: show whatever it was hiding. */
@@ -375,10 +375,10 @@ export class FoilScene {
     const gap = open <= 0 ? -1e5 : open * size * 0.62;
     this.clipLeft.constant = homeX - gap;
     this.clipRight.constant = -(homeX + gap);
-    this.material.opacity = 1 - seg(t, A_DONE - 0.3, A_DONE);
+    this.material.opacity = 1 - seg(t, A_DONE - 0.45, A_DONE);
 
     /* release: the vacuum lets go and the foil relaxes */
-    const release = easeOut(seg(t, A_RELEASE, A_OPEN + 0.3));
+    const release = easeOut(seg(t, A_RELEASE, A_OPEN + 0.45));
     const vac = lerp(1, LOOSE, release);
     this.material.displacementScale = DEPTH * vac;
     this.material.normalScale.setScalar(vac);
@@ -397,9 +397,9 @@ export class FoilScene {
     /* landing: a couple of quick, fading bounces */
     const tb = t - A_LAND;
     if (tb > 0) {
-      const damp = Math.exp(-tb * 6.5);
-      y += Math.abs(Math.sin(tb * 11)) * 44 * damp;
-      rotZ += spin * 0.07 * Math.sin(tb * 11) * damp;
+      const damp = Math.exp(-tb * 5);
+      y += Math.abs(Math.sin(tb * 9)) * 44 * damp;
+      rotZ += spin * 0.07 * Math.sin(tb * 9) * damp;
       x += spin * 5 * Math.sin(tb * 9) * damp;
     }
 

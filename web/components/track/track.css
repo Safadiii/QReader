@@ -1,20 +1,24 @@
 .qt-stage {
   --card: min(78vw, 46dvh, 360px);
+  /* Defaults; the store's design overrides these inline (see lib/design.ts). */
+  --bg: #0a0b0d;
   --ink: #eceef1;
   --muted: #8d929b;
-  --line: rgba(236, 238, 241, 0.16);
   --ok: #7fe6ae;
+  --on-ok: #06140c;
   --paper: #f3f4f6;
   --paper-ink: #0b0c0e;
+  --line: color-mix(in srgb, var(--ink) 16%, transparent);
+  --paper-muted: color-mix(in srgb, var(--paper-ink) 62%, var(--paper));
 
   position: relative;
   flex: 1;
   min-height: 100dvh;
   overflow: hidden;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto;
   color: var(--ink);
-  background: #0a0b0d;
+  background: var(--bg);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
@@ -24,8 +28,29 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(90% 50% at 50% 42%, rgba(170, 182, 200, 0.2), rgba(120, 130, 146, 0.05) 55%, transparent 78%),
-    linear-gradient(180deg, #121317 0%, #0a0b0d 60%, #070809 100%);
+    radial-gradient(90% 50% at 50% 42%, color-mix(in srgb, var(--ink) 16%, transparent), transparent 78%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ink) 4%, transparent), transparent 60%, rgba(0, 0, 0, 0.18));
+}
+
+/* The store's own photo, dimmed so the text stays readable. */
+.qt-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.qt-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+}
+
+.qt-logo {
+  max-height: 44px;
+  max-width: 60%;
+  object-fit: contain;
 }
 
 .qt-header {
@@ -74,7 +99,19 @@
   color: var(--paper-ink);
   text-align: center;
   opacity: 0;
-  transition: box-shadow 0.4s ease;
+  transition:
+    box-shadow 0.4s ease,
+    transform 0.9s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+/* While wrapped, the card is the size of the foil's panel (set from JS). */
+.qt-card:not([data-shown="true"]) {
+  transform: scale(var(--wrap-scale, 1));
+}
+
+/* Shown just before the foil parts: wait for the seam to open, then grow. */
+.qt-card[data-shown="true"] {
+  transition-delay: 0s, 0.8s;
 }
 
 .qt-card[data-shown="true"] {
@@ -85,7 +122,7 @@
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: calc(var(--card) * 0.04);
   letter-spacing: 0.04em;
-  color: #5d626b;
+  color: var(--paper-muted);
 }
 
 .qt-number {
@@ -104,7 +141,7 @@
 
 .qt-statusAlt {
   font-size: calc(var(--card) * 0.045);
-  color: #5d626b;
+  color: var(--paper-muted);
 }
 
 .qt-steps {
@@ -117,7 +154,7 @@
   width: calc(var(--card) * 0.13);
   height: 4px;
   border-radius: 2px;
-  background: rgba(11, 12, 14, 0.14);
+  background: color-mix(in srgb, var(--paper-ink) 14%, transparent);
   transition: background 0.4s ease;
 }
 
@@ -126,15 +163,15 @@
 }
 
 .qt-stage[data-status="ready"] .qt-card {
-  box-shadow: 0 0 0 4px var(--ok), 0 0 60px rgba(127, 230, 174, 0.35);
+  box-shadow: 0 0 0 4px var(--ok), 0 0 60px color-mix(in srgb, var(--ok) 35%, transparent);
 }
 
 .qt-stage[data-status="ready"] .qt-steps li[data-done="true"] {
-  background: #17a05c;
+  background: var(--paper-ink);
 }
 
 .qt-stage[data-status="cancelled"] .qt-number {
-  color: #9a9ea6;
+  color: var(--paper-muted);
   text-decoration: line-through;
   text-decoration-thickness: 0.05em;
 }
@@ -148,8 +185,8 @@
   justify-items: center;
   align-content: start;
   gap: 12px;
-  min-height: 190px;
-  padding: 8px 22px max(28px, env(safe-area-inset-bottom));
+  min-height: 170px;
+  padding: 8px 22px 20px;
   opacity: 0;
   transform: translateY(10px);
   transition:
@@ -172,10 +209,11 @@
   padding: 0 22px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
   color: var(--ink);
   font: inherit;
   font-size: 17px;
+  text-decoration: none;
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -197,13 +235,13 @@
 .qt-button[data-on="true"] {
   border-color: var(--ok);
   color: var(--ok);
-  background: rgba(127, 230, 174, 0.08);
+  background: color-mix(in srgb, var(--ok) 10%, transparent);
 }
 
 .qt-primary {
   border-color: var(--ok);
   background: var(--ok);
-  color: #06140c;
+  color: var(--on-ok);
   font-weight: 600;
   font-size: 19px;
   min-height: 62px;
@@ -267,6 +305,98 @@
   height: 30px;
 }
 
+/* ---------------------------------------------------------------- rating */
+
+.qt-rate {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.qt-rateTitle {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.qt-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.qt-star {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  background: none;
+  color: color-mix(in srgb, var(--ink) 28%, transparent);
+  font-size: 34px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.qt-star[data-on="true"] {
+  color: var(--ok);
+}
+
+.qt-star:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ---------------------------------------------------------- store extras */
+
+.qt-extras {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 0 22px max(24px, env(safe-area-inset-bottom));
+}
+
+.qt-extras:empty {
+  display: none;
+}
+
+.qt-banner {
+  display: block;
+  width: min(100%, 360px);
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.qt-banner img {
+  display: block;
+  width: 100%;
+}
+
+.qt-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.qt-links a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.qt-links a:focus-visible,
+.qt-banner:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 /* --------------------------------------------------------------- problem */
 
 .qt-problem {
@@ -323,6 +453,6 @@
 }
 
 @keyframes qt-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(127, 230, 174, 0.55); }
-  100% { box-shadow: 0 0 0 18px rgba(127, 230, 174, 0); }
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); }
+  100% { box-shadow: 0 0 0 18px transparent; }
 }

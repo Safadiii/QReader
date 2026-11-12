@@ -10,6 +10,23 @@ const lanAddresses = Object.values(networkInterfaces())
 const nextConfig: NextConfig = {
   /* config options here */
   allowedDevOrigins: lanAddresses,
+  // The service worker must never be cached, or phones keep an old one.
+  async headers() {
+    return [
+      {
+        // Apple fetches this to link the domain to the App Clip; it must be JSON.
+        source: "/.well-known/apple-app-site-association",
+        headers: [{ key: "Content-Type", value: "application/json" }],
+      },
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+    ];
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

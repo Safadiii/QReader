@@ -1,7 +1,6 @@
-import { backend, type BackendOrder, type BackendQr } from "@/lib/backend";
+import { backend, staffStore, SIGN_IN, type BackendOrder, type BackendQr } from "@/lib/backend";
 import { publicBaseUrl } from "@/lib/public-url";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SHOWABLE = new Set(["pending", "preparing", "ready"]);
 
 const json = (body: unknown, status = 200) =>
@@ -9,11 +8,9 @@ const json = (body: unknown, status = 200) =>
 
 /** The order the till screen should show right now: the store's newest one. */
 export async function GET(request: Request) {
-  const storeId =
-    new URL(request.url).searchParams.get("storeId") ?? process.env.QREADER_STORE_ID ?? "";
-  if (!UUID.test(storeId)) {
-    return json({ error: "Set QREADER_STORE_ID in web/.env.local (or pass ?storeId=)." }, 400);
-  }
+  // The till's tablet signs in once; the QR it shows is for that store only.
+  const storeId = await staffStore(request);
+  if (!storeId) return json(SIGN_IN, 401);
 
   try {
     const ordersRes = await backend(`/orders/?store_id=${storeId}`);

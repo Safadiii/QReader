@@ -12,27 +12,65 @@
 
 const RATE = 22050;
 const LOOP_SECONDS = 2.6;
-const PREVIEW_MS = 1050;
+const PREVIEW_MS = 1500;
 
-/** A bright two-note "ring-ring", then a pause, as 16-bit mono WAV. */
-function makeRingWav(): Blob {
+export type AlertSound = "pager" | "marimba" | "crystal" | "classic";
+
+type Note = { start: number; length: number; freqs: [number, number][]; decay: number; tremolo?: number };
+
+/** Each sound is a short phrase, then a pause, looped. */
+const SOUNDS: Record<AlertSound, Note[]> = {
+  // A bright two-burst "ring-ring".
+  pager: [0, 0.5].map((start) => ({
+    start,
+    length: 0.42,
+    freqs: [[1318.5, 0.5], [1760, 0.35], [2637, 0.15]],
+    decay: 5,
+    tremolo: 22,
+  })),
+  // Four soft, woody notes climbing a chord.
+  marimba: [523.25, 659.25, 783.99, 1046.5].map((f, i) => ({
+    start: i * 0.19,
+    length: 0.5,
+    freqs: [[f, 0.75], [f * 4, 0.18], [f * 10, 0.05]],
+    decay: 9,
+  })),
+  // Three high glassy bells that ring out.
+  crystal: [2093, 2637, 3136].map((f, i) => ({
+    start: i * 0.26,
+    length: 1.1,
+    freqs: [[f, 0.55], [f * 1.003, 0.3], [f * 2.76, 0.12]],
+    decay: 3.2,
+  })),
+  // An old telephone bell: two tones beating against each other.
+  classic: [0, 0.62].map((start) => ({
+    start,
+    length: 0.5,
+    freqs: [[440, 0.5], [480, 0.5]],
+    decay: 0.6,
+    tremolo: 20,
+  })),
+};
+
+/** Synthesises the chosen sound as 16-bit mono WAV, so no audio files are needed. */
+function makeRingWav(kind: AlertSound): Blob {
   const count = Math.floor(RATE * LOOP_SECONDS);
   const pcm = new Int16Array(count);
-  const bursts = [0, 0.5];
+  const notes = SOUNDS[kind] ?? SOUNDS.pager;
   for (let i = 0; i < count; i++) {
     const t = i / RATE;
     let v = 0;
-    for (const start of bursts) {
-      const bt = t - start;
-      if (bt < 0 || bt > 0.42) continue;
+    for (const note of notes) {
+      const bt = t - note.start;
+      if (bt < 0 || bt > note.length) continue;
       const attack = Math.min(1, bt / 0.008);
-      const decay = Math.exp(-bt * 5);
-      const tremolo = 0.75 + 0.25 * Math.sin(2 * Math.PI * 22 * bt);
-      v +=
-        attack * decay * tremolo *
-        (0.5 * Math.sin(2 * Math.PI * 1318.5 * bt) + 0.35 * Math.sin(2 * Math.PI * 1760 * bt) + 0.15 * Math.sin(2 * Math.PI * 2637 * bt));
+      const release = Math.min(1, (note.length - bt) / 0.02);
+      const tremolo = note.tremolo ? 0.75 + 0.25 * Math.sin(2 * Math.PI * note.tremolo * bt) : 1;
+      let tone = 0;
+      for (const [freq, gain] of note.freqs) tone += gain * Math.sin(2 * Math.PI * freq * bt);
+      v += attack * release * Math.exp(-bt * note.decay) * tremolo * tone;
     }
-    pcm[i] = Math.max(-1, Math.min(1, v * 0.9)) * 32767;
+    pcm[i] = Math.max(-1, Math.min(1, v * 0.85)) * 32767;
   }
 
   const header = new DataView(new ArrayBuffer(44));
@@ -54,16 +92,26 @@ function makeRingWav(): Blob {
   return new Blob([header, pcm], { type: "audio/wav" });
 }
 
+/** Plays a sound once, for the settings screen. Call from a tap. */
+export function previewSound(kind: AlertSound) {
+  const url = URL.createObjectURL(makeRingWav(kind));
+  const audio = new Audio(url);
+  audio.addEventListener("ended", () => URL.revokeObjectURL(url));
+  void audio.play().catch(() => URL.revokeObjectURL(url));
+}
+
 export class Ringer {
-  private url = URL.createObjectURL(makeRingWav());
-  private audio = new Audio(this.url);
+  private url: string;
+  private audio: HTMLAudioElement;
   private ringing = false;
   private previewTimer: ReturnType<typeof setTimeout> | undefined;
   private buzzTimer: ReturnType<typeof setInterval> | undefined;
   private wakeLock: WakeLockSentinel | null = null;
   private wantAwake = false;
 
-  constructor() {
+  constructor(kind: AlertSound = "pager") {
+    this.url = URL.createObjectURL(makeRingWav(kind));
+    this.audio = new Audio(this.url);
     this.audio.preload = "auto";
     document.addEventListener("visibilitychange", this.onVisible);
   }

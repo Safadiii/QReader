@@ -1,0 +1,86 @@
+.lg-page {
+  --ink: #eceef1;
+  --muted: #8d929b;
+  --line: rgba(236, 238, 241, 0.14);
+
+  flex: 1;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--ink);
+  background: #0a0b0d;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.lg-card {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 380px);
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #131418;
+}
+
+.lg-brand {
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.lg-sub {
+  margin-top: -10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.lg-field {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.lg-field input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #0d0e11;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.lg-error {
+  padding: 10px 14px;
+  border: 1px solid #f0c36a;
+  border-radius: 10px;
+  color: #f0c36a;
+  font-size: 14px;
+}
+
+.lg-submit {
+  min-height: 50px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: #0a0b0d;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lg-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.lg-card :is(input, button):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}

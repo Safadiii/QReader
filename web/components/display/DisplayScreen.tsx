@@ -10,8 +10,6 @@ type Phase = "idle" | "wrapping" | "scanned";
 
 type Settings = {
   storeName: string;
-  /** Overrides QREADER_STORE_ID: which store's orders to show. */
-  storeId: string | null;
   /** Show the "Simulate scan" button (always on in development). */
   demo: boolean;
   /** Scan by itself every few seconds: handy for showing the animation. */
@@ -31,7 +29,6 @@ function readSettings(): Settings {
   const freeze = q.get("freeze");
   return {
     storeName: q.get("store")?.trim() || "Demo Kahve",
-    storeId: q.get("storeId"),
     demo: q.has("demo") || process.env.NODE_ENV === "development",
     auto: q.has("auto"),
     freeze: freeze === null ? null : Number(freeze),
@@ -159,7 +156,7 @@ export function DisplayScreen() {
     const tick = async () => {
       let latest: DisplayOrder | null;
       try {
-        latest = await fetchCurrentOrder(settings.storeId);
+        latest = await fetchCurrentOrder();
       } catch {
         if (!cancelled) setOffline(true);
         return;
