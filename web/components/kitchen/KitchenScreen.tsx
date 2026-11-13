@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import "./kitchen.css";
 import { reloadTo } from "@/lib/navigate";
+import { tt, useLang, type Lang } from "@/lib/i18n";
 
 type Status = "pending" | "preparing" | "ready" | "collected" | "cancelled";
 
@@ -21,16 +22,28 @@ type Order = {
 
 const POLL_MS = 2000;
 
-const COLUMNS: { status: Status; title: string; alt: string; empty: string }[] = [
-  { status: "pending", title: "Yeni", alt: "New", empty: "No new orders" },
-  { status: "preparing", title: "Hazırlanıyor", alt: "Preparing", empty: "Nothing being prepared" },
-  { status: "ready", title: "Hazır", alt: "Ready", empty: "Nothing waiting for pickup" },
+const COLUMNS: { status: Status; tr: string; en: string; emptyTr: string; emptyEn: string }[] = [
+  { status: "pending", tr: "Yeni", en: "New", emptyTr: "Yeni sipariş yok", emptyEn: "No new orders" },
+  {
+    status: "preparing",
+    tr: "Hazırlanıyor",
+    en: "Preparing",
+    emptyTr: "Hazırlanan sipariş yok",
+    emptyEn: "Nothing being prepared",
+  },
+  {
+    status: "ready",
+    tr: "Hazır",
+    en: "Ready",
+    emptyTr: "Teslim bekleyen yok",
+    emptyEn: "Nothing waiting for pickup",
+  },
 ];
 
-const NEXT: Partial<Record<Status, { to: Status; label: string }>> = {
-  pending: { to: "preparing", label: "Hazırla · Start" },
-  preparing: { to: "ready", label: "Hazır · Mark ready" },
-  ready: { to: "collected", label: "Teslim edildi · Collected" },
+const NEXT: Partial<Record<Status, { to: Status; tr: string; en: string }>> = {
+  pending: { to: "preparing", tr: "Hazırla", en: "Start" },
+  preparing: { to: "ready", tr: "Hazır", en: "Mark ready" },
+  ready: { to: "collected", tr: "Teslim edildi", en: "Collected" },
 };
 
 /** Today's date as the backend writes it (YYYY-MM-DD), in this device's timezone. */
@@ -40,20 +53,22 @@ function today() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function minutesSince(iso: string, now: number) {
+function minutesSince(iso: string, now: number, lang: Lang) {
+  const tr = lang === "tr";
   const mins = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 60000));
-  if (mins < 1) return "şimdi · now";
-  if (mins < 60) return `${mins} dk · min`;
-  return `${Math.floor(mins / 60)} sa ${mins % 60} dk`;
+  if (mins < 1) return tr ? "şimdi" : "now";
+  if (mins < 60) return tr ? `${mins} dk` : `${mins} min`;
+  return tr ? `${Math.floor(mins / 60)} sa ${mins % 60} dk` : `${Math.floor(mins / 60)} h ${mins % 60} min`;
 }
 
-/** 95 -> "1m", 6060 -> "1h 41m". */
-export function duration(seconds: number | null) {
+/** 95 -> "1m" (en) / "1 dk" (tr), 6060 -> "1h 41m" / "1 sa 41 dk". */
+export function duration(seconds: number | null, lang: Lang = "en") {
   if (seconds === null) return "—";
+  const tr = lang === "tr";
   const mins = Math.round(seconds / 60);
-  if (mins < 1) return `${Math.round(seconds)}s`;
-  if (mins < 60) return `${mins}m`;
-  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  if (mins < 1) return tr ? `${Math.round(seconds)} sn` : `${Math.round(seconds)}s`;
+  if (mins < 60) return tr ? `${mins} dk` : `${mins}m`;
+  return tr ? `${Math.floor(mins / 60)} sa ${mins % 60} dk` : `${Math.floor(mins / 60)}h ${mins % 60}m`;
 }
 
 const clock = (iso: string) =>
@@ -65,6 +80,7 @@ type Props = {
 };
 
 export function KitchenScreen({ embedded = false }: Props) {
+  const { lang, t } = useLang();
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [now, setNow] = useState(0);
   const [offline, setOffline] = useState<string | null>(null);
@@ -77,11 +93,15 @@ export function KitchenScreen({ embedded = false }: Props) {
       const res = await fetch("/api/kitchen/orders", { cache: "no-store" });
       if (res.status === 401) reloadTo(`/login?next=${window.location.pathname}`);
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error ?? "Can't load orders.");
+      if (!res.ok) throw new Error(body.error ?? tt("Siparişler yüklenemedi.", "Can't load orders."));
       setOrders(body.orders);
       setOffline(null);
     } catch (err) {
-      setOffline(err instanceof Error && err.message !== "Failed to fetch" ? err.message : "Can't reach the server. Retrying…");
+      setOffline(
+        err instanceof Error && err.message !== "Failed to fetch"
+          ? err.message
+          : tt("Sunucuya ulaşılamıyor. Yeniden deneniyor…", "Can't reach the server. Retrying…"),
+      );
     }
     setNow(Date.now());
   }, []);
@@ -111,10 +131,10 @@ export function KitchenScreen({ embedded = false }: Props) {
         body: JSON.stringify({ orderNumber: Number(numberValue) }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) setNotice(body.error ?? "Could not create the order.");
+      if (!res.ok) setNotice(body.error ?? tt("Sipariş oluşturulamadı.", "Could not create the order."));
       else setTyped(null); // back to suggesting the next number
     } catch {
-      setNotice("Can't reach the server.");
+      setNotice(tt("Sunucuya ulaşılamıyor.", "Can't reach the server."));
     }
     await refresh();
     setBusy(null);
@@ -131,9 +151,9 @@ export function KitchenScreen({ embedded = false }: Props) {
         body: JSON.stringify({ status }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) setNotice(body.error ?? "Could not update the order.");
+      if (!res.ok) setNotice(body.error ?? tt("Sipariş güncellenemedi.", "Could not update the order."));
     } catch {
-      setNotice("Can't reach the server.");
+      setNotice(tt("Sunucuya ulaşılamıyor.", "Can't reach the server."));
     }
     await refresh();
     setBusy(null);
@@ -146,9 +166,9 @@ export function KitchenScreen({ embedded = false }: Props) {
     try {
       const res = await fetch(`/api/kitchen/orders/${order.id}/ring`, { method: "POST" });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) setNotice(body.error ?? "Could not ring the customer.");
+      if (!res.ok) setNotice(body.error ?? tt("Müşteri aranamadı.", "Could not ring the customer."));
     } catch {
-      setNotice("Can't reach the server.");
+      setNotice(tt("Sunucuya ulaşılamıyor.", "Can't reach the server."));
     }
     await refresh();
     setBusy(null);
@@ -159,12 +179,12 @@ export function KitchenScreen({ embedded = false }: Props) {
     .filter((o) => o.ready_at)
     .map((o) => (new Date(o.ready_at!).getTime() - new Date(o.created_at).getTime()) / 1000);
   const stats = [
-    { label: "Bekleyen · Waiting", value: all.filter((o) => o.status === "pending" || o.status === "preparing").length },
-    { label: "Hazır · Ready", value: all.filter((o) => o.status === "ready").length },
-    { label: "Bugün teslim · Picked up today", value: todays.filter((o) => o.status === "collected").length },
+    { label: t("Bekleyen", "Waiting"), value: all.filter((o) => o.status === "pending" || o.status === "preparing").length },
+    { label: t("Hazır", "Ready"), value: all.filter((o) => o.status === "ready").length },
+    { label: t("Bugün teslim", "Picked up today"), value: todays.filter((o) => o.status === "collected").length },
     {
-      label: "Ort. hazırlık · Avg. prep today",
-      value: duration(prepTimes.length ? prepTimes.reduce((a, b) => a + b, 0) / prepTimes.length : null),
+      label: t("Bugün ort. hazırlık", "Avg. prep today"),
+      value: duration(prepTimes.length ? prepTimes.reduce((a, b) => a + b, 0) / prepTimes.length : null, lang),
     },
   ];
 
@@ -174,13 +194,14 @@ export function KitchenScreen({ embedded = false }: Props) {
     <main className="kd-page" data-embedded={embedded}>
       <header className="kd-top">
         <div>
-          <h1 className="kd-title">{embedded ? "Siparişler" : "Mutfak"}</h1>
-          <div className="kd-sub">{embedded ? "Orders" : "Kitchen"}</div>
+          <h1 className="kd-title">
+            {embedded ? t("Siparişler", "Orders") : t("Mutfak", "Kitchen")}
+          </h1>
         </div>
 
         <form className="kd-new" onSubmit={(e) => void addOrder(e)}>
           <label className="kd-newLabel" htmlFor="kd-number">
-            Sipariş no · Order no.
+            {t("Sipariş no", "Order no.")}
           </label>
           <input
             id="kd-number"
@@ -193,7 +214,7 @@ export function KitchenScreen({ embedded = false }: Props) {
             onChange={(e) => setTyped(e.target.value)}
           />
           <button className="kd-add" type="submit" disabled={busy !== null || orders === null}>
-            + Yeni sipariş · New order
+            {t("+ Yeni sipariş", "+ New order")}
           </button>
         </form>
       </header>
@@ -224,26 +245,26 @@ export function KitchenScreen({ embedded = false }: Props) {
           return (
             <div key={col.status} className="kd-col" data-status={col.status}>
               <h2 className="kd-colTitle">
-                {col.title} <span>{col.alt}</span>
+                {t(col.tr, col.en)}
                 <b>{list.length}</b>
               </h2>
-              {orders !== null && list.length === 0 && <p className="kd-empty">{col.empty}</p>}
+              {orders !== null && list.length === 0 && <p className="kd-empty">{t(col.emptyTr, col.emptyEn)}</p>}
               {list.map((o) => {
                 const next = NEXT[o.status];
                 return (
                   <article key={o.id} className="kd-ticket" data-coming={o.customer_coming_at !== null}>
                     {o.customer_coming_at && (
                       <div className="kd-coming" role="status">
-                        Müşteri geliyor · Customer is coming
+                        {t("Müşteri geliyor", "Customer is coming")}
                         <span>{clock(o.customer_coming_at)}</span>
                       </div>
                     )}
                     <div className="kd-ticketMain">
                       <div className="kd-number">{o.order_number}</div>
                       <div className="kd-meta">
-                        <span>{minutesSince(o.created_at, now)}</span>
+                        <span>{minutesSince(o.created_at, now, lang)}</span>
                         <span className="kd-scan" data-on={o.scanned_at !== null}>
-                          {o.scanned_at ? "QR okutuldu · Scanned" : "QR okutulmadı · Not scanned"}
+                          {o.scanned_at ? t("QR okutuldu", "Scanned") : t("QR okutulmadı", "Not scanned")}
                         </span>
                       </div>
                     </div>
@@ -254,17 +275,17 @@ export function KitchenScreen({ embedded = false }: Props) {
                           disabled={busy !== null}
                           onClick={() => void move(o, next.to)}
                         >
-                          {next.label}
+                          {t(next.tr, next.en)}
                         </button>
                       )}
                       {o.status === "ready" && (
                         <button
                           className="kd-cancel"
                           disabled={busy !== null || o.scanned_at === null}
-                          title={o.scanned_at === null ? "The customer hasn't scanned the QR" : undefined}
+                          title={o.scanned_at === null ? t("Müşteri QR kodu okutmadı", "The customer hasn't scanned the QR") : undefined}
                           onClick={() => void ring(o)}
                         >
-                          Tekrar çal · Ring again
+                          {t("Tekrar çal", "Ring again")}
                         </button>
                       )}
                       {(o.status === "pending" || o.status === "preparing") && (
@@ -272,10 +293,10 @@ export function KitchenScreen({ embedded = false }: Props) {
                           className="kd-cancel"
                           disabled={busy !== null}
                           onClick={() => {
-                            if (window.confirm(`Cancel order ${o.order_number}?`)) void move(o, "cancelled");
+                            if (window.confirm(t(`${o.order_number} numaralı sipariş iptal edilsin mi?`, `Cancel order ${o.order_number}?`))) void move(o, "cancelled");
                           }}
                         >
-                          İptal · Cancel
+                          {t("İptal", "Cancel")}
                         </button>
                       )}
                     </div>
@@ -290,13 +311,13 @@ export function KitchenScreen({ embedded = false }: Props) {
       {done.length > 0 && (
         <section className="kd-done">
           <h2 className="kd-doneTitle">
-            Bugün biten · Finished today <b>{done.length}</b>
+            {t("Bugün biten", "Finished today")} <b>{done.length}</b>
           </h2>
           <ul>
             {done.map((o) => (
               <li key={o.id} data-status={o.status}>
                 <b>{o.order_number}</b>
-                {o.status === "collected" ? "Teslim edildi · Collected" : "İptal · Cancelled"}
+                {o.status === "collected" ? t("Teslim edildi", "Collected") : t("İptal edildi", "Cancelled")}
                 {o.completed_at && <span>{clock(o.completed_at)}</span>}
               </li>
             ))}

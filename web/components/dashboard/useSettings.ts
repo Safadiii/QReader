@@ -3,15 +3,18 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AssetKind, Design } from "@/lib/design";
 import { reloadTo } from "@/lib/navigate";
+import { setLanguage, tt } from "@/lib/i18n";
 
 const errorText = (err: unknown) =>
-  err instanceof Error && err.message !== "Failed to fetch" ? err.message : "Can't reach the server.";
+  err instanceof Error && err.message !== "Failed to fetch"
+    ? err.message
+    : tt("Sunucuya ulaşılamıyor.", "Can't reach the server.");
 
 async function call(url: string, init?: RequestInit): Promise<Design> {
   const res = await fetch(url, { cache: "no-store", ...init });
   if (res.status === 401) reloadTo(`/login?next=${window.location.pathname}`);
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error ?? `Request failed (${res.status}).`);
+  if (!res.ok) throw new Error(body.error ?? tt(`İstek başarısız (${res.status}).`, `Request failed (${res.status}).`));
   return body;
 }
 
@@ -30,6 +33,7 @@ export function useSettings() {
         if (cancelled) return;
         setSaved(settings);
         setDraft(settings);
+        setLanguage(settings.default_language);
       })
       .catch((err) => !cancelled && setError(errorText(err)));
     return () => {
@@ -58,6 +62,7 @@ export function useSettings() {
       });
       setSaved(settings);
       setDraft(settings);
+      setLanguage(settings.default_language); // the whole dashboard switches on save
       setJustSaved(true);
     } catch (err) {
       setError(errorText(err));

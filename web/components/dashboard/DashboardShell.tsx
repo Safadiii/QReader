@@ -4,23 +4,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "./dashboard.css";
 import { reloadTo } from "@/lib/navigate";
+import { useLang } from "@/lib/i18n";
 
 const NAV = [
-  { href: "/dashboard", label: "Siparişler", alt: "Orders" },
-  { href: "/dashboard/analytics", label: "Analiz", alt: "Analytics" },
-  { href: "/dashboard/page", label: "Sipariş sayfası", alt: "Order page" },
-  { href: "/dashboard/settings", label: "Ayarlar", alt: "Settings" },
+  { href: "/dashboard", tr: "Siparişler", en: "Orders" },
+  { href: "/dashboard/analytics", tr: "Analiz", en: "Analytics" },
+  { href: "/dashboard/page", tr: "Sipariş sayfası", en: "Order page" },
+  { href: "/dashboard/settings", tr: "Ayarlar", en: "Settings" },
 ];
 
 /** Full-screen views meant for their own device; they open in a new tab. */
 const SCREENS = [
-  { href: "/kitchen", label: "Mutfak ekranı", alt: "Kitchen screen" },
-  { href: "/display", label: "Müşteri ekranı", alt: "Customer screen (QR)" },
-  { href: "/waiting", label: "Bekleme ekranı", alt: "Waiting screen (TV)" },
+  { href: "/kitchen", tr: "Mutfak ekranı", en: "Kitchen screen" },
+  { href: "/display", tr: "Müşteri ekranı (QR)", en: "Customer screen (QR)" },
+  { href: "/waiting", tr: "Bekleme ekranı (TV)", en: "Waiting screen (TV)" },
 ];
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { t } = useLang();
   return (
     <div className="ds-shell">
       <aside className="ds-side">
@@ -36,18 +38,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               className="ds-link"
               aria-current={pathname === item.href ? "page" : undefined}
             >
-              {item.label}
-              <span>{item.alt}</span>
+              {t(item.tr, item.en)}
             </Link>
           ))}
         </nav>
 
-        <div className="ds-group">Ekranlar · Screens</div>
-        <nav className="ds-nav" aria-label="Screens">
+        <div className="ds-group">{t("Ekranlar", "Screens")}</div>
+        <nav className="ds-nav" aria-label={t("Ekranlar", "Screens")}>
           {SCREENS.map((item) => (
             <a key={item.href} href={item.href} target="_blank" rel="noreferrer" className="ds-link">
-              {item.label}
-              <span>{item.alt} ↗</span>
+              {t(item.tr, item.en)}
+              <span>↗</span>
             </a>
           ))}
         </nav>
@@ -58,7 +59,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             void fetch("/api/auth/logout", { method: "POST" }).then(() => reloadTo("/login"))
           }
         >
-          Çıkış yap · Sign out
+          {t("Çıkış yap", "Sign out")}
         </button>
       </aside>
 

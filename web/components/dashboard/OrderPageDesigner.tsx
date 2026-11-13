@@ -11,30 +11,32 @@ import {
   type ThemeName,
 } from "@/lib/design";
 import type { PreviewMessage } from "@/components/track/TrackView";
+import { useLang } from "@/lib/i18n";
 import { SaveBar } from "./SaveBar";
 import { useSettings } from "./useSettings";
 import "./forms.css";
 
 type PreviewStatus = PreviewMessage["status"];
 
-const STATUSES: { value: PreviewStatus; label: string }[] = [
-  { value: "preparing", label: "Hazırlanıyor · Preparing" },
-  { value: "ready", label: "Hazır · Ready" },
-  { value: "collected", label: "Teslim · Collected" },
+const STATUSES: { value: PreviewStatus; tr: string; en: string }[] = [
+  { value: "preparing", tr: "Hazırlanıyor", en: "Preparing" },
+  { value: "ready", tr: "Hazır", en: "Ready" },
+  { value: "collected", tr: "Teslim", en: "Collected" },
 ];
 
 const UPLOADS: {
   kind: AssetKind;
-  title: string;
-  alt: string;
-  help: string;
+  tr: string;
+  en: string;
+  helpTr: string;
+  helpEn: string;
   maxWidth: number;
   maxHeight: number;
   type: "image/png" | "image/jpeg";
 }[] = [
-  { kind: "logo", title: "Logo", alt: "Logo", help: "Shown at the top instead of the venue name. A transparent PNG works best.", maxWidth: 512, maxHeight: 512, type: "image/png" },
-  { kind: "background", title: "Arka plan fotoğrafı", alt: "Background photo", help: "Best as a portrait photo, 1080×1920. It is dimmed so text stays readable.", maxWidth: 1080, maxHeight: 1920, type: "image/jpeg" },
-  { kind: "banner", title: "Afiş", alt: "Banner", help: "A photo or offer under the order, e.g. 1080×1080.", maxWidth: 1080, maxHeight: 1080, type: "image/jpeg" },
+  { kind: "logo", tr: "Logo", en: "Logo", helpTr: "Mekan adı yerine en üstte gösterilir. Şeffaf PNG en iyi sonucu verir.", helpEn: "Shown at the top instead of the venue name. A transparent PNG works best.", maxWidth: 512, maxHeight: 512, type: "image/png" },
+  { kind: "background", tr: "Arka plan fotoğrafı", en: "Background photo", helpTr: "Dikey bir fotoğraf (1080×1920) en uygunudur. Yazılar okunsun diye karartılır.", helpEn: "Best as a portrait photo, 1080×1920. It is dimmed so text stays readable.", maxWidth: 1080, maxHeight: 1920, type: "image/jpeg" },
+  { kind: "banner", tr: "Afiş", en: "Banner", helpTr: "Siparişin altında gösterilen fotoğraf veya kampanya, örn. 1080×1080.", helpEn: "A photo or offer under the order, e.g. 1080×1080.", maxWidth: 1080, maxHeight: 1080, type: "image/jpeg" },
 ];
 
 /** Shrinks a photo in the browser so uploads stay small and fast on phones. */
@@ -52,6 +54,7 @@ async function shrink(file: File, maxWidth: number, maxHeight: number, type: str
 }
 
 export function OrderPageDesigner() {
+  const { t } = useLang();
   const { draft, change, save, setAsset, error, busy, dirty, justSaved } = useSettings();
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [status, setStatus] = useState<PreviewStatus>("preparing");
@@ -80,10 +83,11 @@ export function OrderPageDesigner() {
       try {
         await setAsset(item.kind, await shrink(file, item.maxWidth, item.maxHeight, item.type));
       } catch {
-        setUploadError("Bu görsel okunamadı · Couldn't read that image. Use a PNG or JPEG.");
+        setUploadError(t("Bu görsel okunamadı. PNG veya JPEG kullanın.", "Couldn't read that image. Use a PNG or JPEG."));
       }
     },
-    [setAsset],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [setAsset, t],
   );
 
   const setLink = (d: Design, kind: keyof Design["links"], value: string) => {
@@ -97,8 +101,10 @@ export function OrderPageDesigner() {
 
   return (
     <div className="fm-page" data-wide="true">
-      <h1 className="fm-title">Sipariş sayfası</h1>
-      <div className="fm-sub">Order page · what customers see after scanning</div>
+      <h1 className="fm-title">{t("Sipariş sayfası", "Order page")}</h1>
+      <div className="fm-sub">
+        {t("Müşterilerin QR okuttuktan sonra gördüğü sayfa", "What customers see after scanning")}
+      </div>
 
       {!draft && error && <div className="fm-notice">{error}</div>}
 
@@ -106,12 +112,10 @@ export function OrderPageDesigner() {
         <div className="od-layout">
           <div>
             <section className="fm-card">
-              <h2>
-                Görünüm <span>Looks</span>
-              </h2>
+              <h2>{t("Görünüm", "Looks")}</h2>
               <div className="od-themes">
                 {(Object.keys(THEMES) as ThemeName[]).map((name) => {
-                  const t = THEMES[name];
+                  const theme = THEMES[name];
                   return (
                     <button
                       key={name}
@@ -122,11 +126,11 @@ export function OrderPageDesigner() {
                         change({ theme: name, brand_color: null, card_color: null, number_color: null })
                       }
                     >
-                      <span className="od-swatch" style={{ background: t.bg }}>
-                        <i style={{ background: t.card, color: t.number }}>57</i>
-                        <b style={{ background: t.accent }} />
+                      <span className="od-swatch" style={{ background: theme.bg }}>
+                        <i style={{ background: theme.card, color: theme.number }}>57</i>
+                        <b style={{ background: theme.accent }} />
                       </span>
-                      {t.label}
+                      {theme.label}
                     </button>
                   );
                 })}
@@ -134,15 +138,13 @@ export function OrderPageDesigner() {
             </section>
 
             <section className="fm-card">
-              <h2>
-                Renkler <span>Colours</span>
-              </h2>
+              <h2>{t("Renkler", "Colours")}</h2>
               <div className="od-colors">
                 {(
                   [
-                    ["brand_color", "Marka rengi · Brand colour", colors.accent],
-                    ["card_color", "Kart rengi · Card colour", colors.card],
-                    ["number_color", "Numara rengi · Number colour", colors.number],
+                    ["brand_color", t("Marka rengi", "Brand colour"), colors.accent],
+                    ["card_color", t("Kart rengi", "Card colour"), colors.card],
+                    ["number_color", t("Numara rengi", "Number colour"), colors.number],
                   ] as const
                 ).map(([field, label, value]) => (
                   <label key={field} className="fm-field">
@@ -157,7 +159,7 @@ export function OrderPageDesigner() {
                           change({ [field]: null });
                         }}
                       >
-                        Sıfırla · Reset
+                        {t("Sıfırla", "Reset")}
                       </button>
                     </span>
                   </label>
@@ -169,10 +171,8 @@ export function OrderPageDesigner() {
               const url = assetUrl(draft, item.kind);
               return (
                 <section key={item.kind} className="fm-card">
-                  <h2>
-                    {item.title} <span>{item.alt}</span>
-                  </h2>
-                  <p className="fm-help">{item.help}</p>
+                  <h2>{t(item.tr, item.en)}</h2>
+                  <p className="fm-help">{t(item.helpTr, item.helpEn)}</p>
                   <div className="od-upload">
                     <div
                       className="od-thumb"
@@ -190,17 +190,17 @@ export function OrderPageDesigner() {
                           e.target.value = "";
                         }}
                       />
-                      <span className="od-pick">{url ? "Değiştir · Replace" : "Yükle · Upload"}</span>
+                      <span className="od-pick">{url ? t("Değiştir", "Replace") : t("Yükle", "Upload")}</span>
                     </label>
                     {url && (
                       <button className="fm-ghost" disabled={busy} onClick={() => void setAsset(item.kind, null)}>
-                        Kaldır · Remove
+                        {t("Kaldır", "Remove")}
                       </button>
                     )}
                   </div>
                   {item.kind === "banner" && (
                     <label className="fm-field">
-                      <span>Afişe dokununca açılacak bağlantı · Link opened when the banner is tapped</span>
+                      <span>{t("Afişe dokununca açılacak bağlantı", "Link opened when the banner is tapped")}</span>
                       <input
                         className="fm-input"
                         type="url"
@@ -217,10 +217,13 @@ export function OrderPageDesigner() {
             {uploadError && <div className="fm-notice">{uploadError}</div>}
 
             <section className="fm-card">
-              <h2>
-                Bağlantılar <span>Your links</span>
-              </h2>
-              <p className="fm-help">Shown as buttons under the order. Leave a field empty to hide it.</p>
+              <h2>{t("Bağlantılar", "Your links")}</h2>
+              <p className="fm-help">
+                {t(
+                  "Siparişin altında düğme olarak gösterilir. Gizlemek için alanı boş bırakın.",
+                  "Shown as buttons under the order. Leave a field empty to hide it.",
+                )}
+              </p>
               <div className="fm-grid2">
                 {LINK_KINDS.map((l) => (
                   <label key={l.kind} className="fm-field">
@@ -250,12 +253,12 @@ export function OrderPageDesigner() {
                   aria-pressed={status === s.value}
                   onClick={() => setStatus(s.value)}
                 >
-                  {s.label}
+                  {t(s.tr, s.en)}
                 </button>
               ))}
             </div>
             <div className="od-phone">
-              <iframe ref={frameRef} src="/track/preview" title="Order page preview" />
+              <iframe ref={frameRef} src="/track/preview" title={t("Sipariş sayfası önizlemesi", "Order page preview")} />
             </div>
           </aside>
         </div>

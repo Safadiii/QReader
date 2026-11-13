@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { duration } from "@/components/kitchen/KitchenScreen";
+import { tt, useLang } from "@/lib/i18n";
 import "./analytics.css";
 
 type Data = {
@@ -21,14 +22,22 @@ type Data = {
 };
 
 const RANGES = [
-  { days: 7, label: "Son 7 gün · Last 7 days" },
-  { days: 30, label: "Son 30 gün · Last 30 days" },
-  { days: 90, label: "Son 90 gün · Last 90 days" },
-  { days: 365, label: "Son 1 yıl · Last year" },
+  { days: 7, tr: "Son 7 gün", en: "Last 7 days" },
+  { days: 30, tr: "Son 30 gün", en: "Last 30 days" },
+  { days: 90, tr: "Son 90 gün", en: "Last 90 days" },
+  { days: 365, tr: "Son 1 yıl", en: "Last year" },
 ];
 
 // The backend counts weekdays from Monday = 0.
-const WEEKDAYS = ["Pzt · Mon", "Sal · Tue", "Çar · Wed", "Per · Thu", "Cum · Fri", "Cmt · Sat", "Paz · Sun"];
+const WEEKDAYS = [
+  ["Pzt", "Mon"],
+  ["Sal", "Tue"],
+  ["Çar", "Wed"],
+  ["Per", "Thu"],
+  ["Cum", "Fri"],
+  ["Cmt", "Sat"],
+  ["Paz", "Sun"],
+];
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 
 const percent = (part: number, whole: number) => (whole ? `${Math.round((part / whole) * 100)}%` : "—");
@@ -53,6 +62,7 @@ function downloadCsv(data: Data) {
 }
 
 export function Analytics() {
+  const { lang, t } = useLang();
   const [days, setDays] = useState(30);
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,12 +74,12 @@ export function Analytics() {
       .then(async (res) => {
         const body = await res.json().catch(() => ({}));
         if (cancelled) return;
-        if (!res.ok) throw new Error(body.error ?? "Can't load analytics.");
+        if (!res.ok) throw new Error(body.error ?? tt("Analizler yüklenemedi.", "Can't load analytics."));
         setData(body);
         setError(null);
       })
       .catch((err: Error) => {
-        if (!cancelled) setError(err.message === "Failed to fetch" ? "Can't reach the server." : err.message);
+        if (!cancelled) setError(err.message === "Failed to fetch" ? tt("Sunucuya ulaşılamıyor.", "Can't reach the server.") : err.message);
       });
     return () => {
       cancelled = true;
@@ -78,13 +88,13 @@ export function Analytics() {
 
   const tiles = data
     ? [
-        { label: "Sipariş · Orders", value: String(data.orders) },
-        { label: "Ort. hazırlık · Avg. prep time", value: duration(data.avg_prep_seconds) },
-        { label: "Hazırdan teslime · Pickup after ready", value: duration(data.avg_pickup_seconds) },
-        { label: "QR okutan · Scanned the QR", value: percent(data.scanned, data.orders) },
-        { label: "“Geliyorum” · Tapped “I'm coming”", value: String(data.customers_coming) },
+        { label: t("Sipariş", "Orders"), value: String(data.orders) },
+        { label: t("Ort. hazırlık süresi", "Avg. prep time"), value: duration(data.avg_prep_seconds, lang) },
+        { label: t("Hazırdan teslime", "Pickup after ready"), value: duration(data.avg_pickup_seconds, lang) },
+        { label: t("QR okutan", "Scanned the QR"), value: percent(data.scanned, data.orders) },
+        { label: t("“Geliyorum” diyen", "Tapped “I'm coming”"), value: String(data.customers_coming) },
         {
-          label: `Ort. puan · Avg. rating (${data.ratings})`,
+          label: `${t("Ort. puan", "Avg. rating")} (${data.ratings})`,
           value: data.avg_rating === null ? "—" : `★ ${data.avg_rating.toFixed(1)}`,
         },
       ]
@@ -99,24 +109,23 @@ export function Analytics() {
     <div className="an-page">
       <header className="an-top">
         <div>
-          <h1 className="an-title">Analiz</h1>
-          <div className="an-sub">Analytics</div>
+          <h1 className="an-title">{t("Analiz", "Analytics")}</h1>
         </div>
         <div className="an-controls">
           <select
             className="an-select"
-            aria-label="Date range"
+            aria-label={t("Tarih aralığı", "Date range")}
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
           >
             {RANGES.map((r) => (
               <option key={r.days} value={r.days}>
-                {r.label}
+                {t(r.tr, r.en)}
               </option>
             ))}
           </select>
           <button className="an-button" disabled={!data} onClick={() => data && downloadCsv(data)}>
-            CSV indir · Export CSV
+            {t("CSV indir", "Export CSV")}
           </button>
         </div>
       </header>
@@ -130,10 +139,10 @@ export function Analytics() {
       {data && (
         <>
           <dl className="an-tiles">
-            {tiles.map((t) => (
-              <div key={t.label}>
-                <dt>{t.label}</dt>
-                <dd>{t.value}</dd>
+            {tiles.map((tile) => (
+              <div key={tile.label}>
+                <dt>{tile.label}</dt>
+                <dd>{tile.value}</dd>
               </div>
             ))}
           </dl>
@@ -141,10 +150,10 @@ export function Analytics() {
           <section className="an-card">
             <div className="an-cardTop">
               <h2>
-                Günlük sipariş <span>Orders per day</span>
+                {t("Günlük sipariş", "Orders per day")}
               </h2>
               <button className="an-link" onClick={() => setTable((v) => !v)} aria-pressed={table}>
-                {table ? "Grafik · Chart" : "Tablo · Table"}
+                {table ? t("Grafik", "Chart") : t("Tablo", "Table")}
               </button>
             </div>
             {table ? (
@@ -152,8 +161,8 @@ export function Analytics() {
                 <table className="an-table">
                   <thead>
                     <tr>
-                      <th>Tarih · Date</th>
-                      <th>Sipariş · Orders</th>
+                      <th>{t("Tarih", "Date")}</th>
+                      <th>{t("Sipariş", "Orders")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -180,11 +189,11 @@ export function Analytics() {
                         key={d.date}
                         className="an-barSlot"
                         tabIndex={0}
-                        aria-label={`${d.date}: ${d.orders} orders`}
+                        aria-label={`${d.date}: ${d.orders} ${t("sipariş", "orders")}`}
                       >
                         <div className="an-bar" style={{ height: `${(d.orders / dayMax) * 100}%` }} />
                         <div className="an-tip">
-                          <b>{d.orders}</b> sipariş · orders
+                          <b>{d.orders}</b> {t("sipariş", "orders")}
                           <span>{d.date}</span>
                         </div>
                       </div>
@@ -202,7 +211,7 @@ export function Analytics() {
           <section className="an-card">
             <div className="an-cardTop">
               <h2>
-                Yoğun saatler <span>Peak hours</span>
+                {t("Yoğun saatler", "Peak hours")}
               </h2>
               <div className="an-scale" aria-hidden>
                 0
@@ -214,7 +223,7 @@ export function Analytics() {
               </div>
             </div>
             <div className="an-heatWrap">
-              <div className="an-heat" role="table" aria-label="Orders by weekday and hour">
+              <div className="an-heat" role="table" aria-label={t("Gün ve saate göre siparişler", "Orders by weekday and hour")}>
                 <div className="an-heatRow" role="row" aria-hidden>
                   <span />
                   {HOURS.map((h) => (
@@ -223,8 +232,10 @@ export function Analytics() {
                     </span>
                   ))}
                 </div>
-                {WEEKDAYS.map((name, w) => (
-                  <div key={name} className="an-heatRow" role="row">
+                {WEEKDAYS.map(([trName, enName], w) => {
+                  const name = t(trName, enName);
+                  return (
+                  <div key={enName} className="an-heatRow" role="row">
                     <span className="an-heatDay" role="rowheader">
                       {name}
                     </span>
@@ -238,11 +249,11 @@ export function Analytics() {
                           role="cell"
                           tabIndex={n ? 0 : undefined}
                           data-level={level}
-                          aria-label={`${name}, ${hourLabel(h)}: ${n} orders`}
+                          aria-label={`${name}, ${hourLabel(h)}: ${n} ${t("sipariş", "orders")}`}
                         >
                           {n > 0 && (
                             <span className="an-tip">
-                              <b>{n}</b> sipariş · orders
+                              <b>{n}</b> {t("sipariş", "orders")}
                               <span>
                                 {name}, {hourLabel(h)}
                               </span>
@@ -252,7 +263,8 @@ export function Analytics() {
                       );
                     })}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -260,16 +272,16 @@ export function Analytics() {
           <section className="an-card">
             <div className="an-cardTop">
               <h2>
-                Saate göre hazırlık süresi <span>Prep time by hour</span>
+                {t("Saate göre hazırlık süresi", "Prep time by hour")}
               </h2>
             </div>
             {prepMax === 0 ? (
-              <p className="an-empty">Henüz hazırlanan sipariş yok · No orders have been made ready yet.</p>
+              <p className="an-empty">{t("Henüz hazırlanan sipariş yok.", "No orders have been made ready yet.")}</p>
             ) : (
               <div className="an-chart">
                 <div className="an-axis" aria-hidden>
-                  <span>{duration(prepMax)}</span>
-                  <span>{duration(prepMax / 2)}</span>
+                  <span>{duration(prepMax, lang)}</span>
+                  <span>{duration(prepMax / 2, lang)}</span>
                   <span>0</span>
                 </div>
                 <div className="an-plot">
@@ -279,7 +291,7 @@ export function Analytics() {
                         key={h.hour}
                         className="an-barSlot"
                         tabIndex={h.avg_prep_seconds ? 0 : undefined}
-                        aria-label={`${hourLabel(h.hour)}: ${duration(h.avg_prep_seconds)}`}
+                        aria-label={`${hourLabel(h.hour)}: ${duration(h.avg_prep_seconds, lang)}`}
                       >
                         <div
                           className="an-bar"
@@ -287,7 +299,7 @@ export function Analytics() {
                         />
                         {h.avg_prep_seconds !== null && (
                           <div className="an-tip">
-                            <b>{duration(h.avg_prep_seconds)}</b>
+                            <b>{duration(h.avg_prep_seconds, lang)}</b>
                             <span>{hourLabel(h.hour)}</span>
                           </div>
                         )}

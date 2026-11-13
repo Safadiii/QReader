@@ -5,4 +5,4 @@ __pycache__/
 ios/build/
 ios/*.xcodeproj/xcuserdata/
 node_modules/
-next/
+.next/
