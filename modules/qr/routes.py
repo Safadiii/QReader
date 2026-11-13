@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
 from database.init_db import get_db
-from .schemas import PublicOrderResponse, QRCodeResponse
+from .schemas import PublicOrderResponse, QRCodeResponse, RatingBody
 from .services import QRService
 
 
@@ -73,3 +73,10 @@ def customer_coming(token: str, response: Response, db: Session = Depends(get_db
     """The customer tells the kitchen they are on their way to collect a ready order."""
     _no_store(response)
     return QRService(db).coming(token)
+
+
+@router.post("/track/{token}/rating", response_model=PublicOrderResponse)
+def rate_order(token: str, body: RatingBody, response: Response, db: Session = Depends(get_db)):
+    """The customer rates their order after picking it up."""
+    _no_store(response)
+    return QRService(db).rate(token, body.stars)

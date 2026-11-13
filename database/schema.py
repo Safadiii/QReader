@@ -12,12 +12,13 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -185,6 +186,8 @@ class Order(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Set when the customer taps "I'm coming" on their phone after the order is ready.
     customer_coming_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Set each time staff tap "Ring again"; the customer's phone rings when it changes.
+    ring_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     store: Mapped["Store"] = relationship(back_populates="orders")
     creator: Mapped["User | None"] = relationship(
@@ -200,6 +203,11 @@ class Order(Base):
         back_populates="order"
     )
     notifications: Mapped[list["Notification"]] = relationship(back_populates="order")
+
+    @property
+    def scanned_at(self) -> datetime | None:
+        """When the customer scanned this order's QR, if they have."""
+        return self.qr_code.scanned_at if self.qr_code else None
 
 
 class QRCode(Base):
@@ -345,6 +353,76 @@ class Notification(Base):
     )
     status_event: Mapped["OrderStatusHistory | None"] = relationship(
         back_populates="notifications"
+    )
+
+
+class StoreSettings(Base):
+    """Per-store options: customer language, alert, ratings and order-page design."""
+    __tablename__ = "store_settings"
+
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), primary_key=True
+    )
+    default_language: Mapped[str] = mapped_column(String(2), nullable=False, server_default=text("'tr'"))
+
+    # What the customer's phone plays and shows when the order is ready.
+    alert_sound: Mapped[str] = mapped_column(String(16), nullable=False, server_default=text("'pager'"))
+    alert_title_tr: Mapped[str | None] = mapped_column(String(120))
+    alert_text_tr: Mapped[str | None] = mapped_column(String(200))
+    alert_title_en: Mapped[str | None] = mapped_column(String(120))
+    alert_text_en: Mapped[str | None] = mapped_column(String(200))
+
+    # Rating after pickup; high ratings are pointed at the Google review link.
+    ask_rating: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("TRUE"))
+    google_min_stars: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("4"))
+    google_review_url: Mapped[str | None] = mapped_column(Text)
+
+    # Order page design.
+    theme: Mapped[str] = mapped_column(String(16), nullable=False, server_default=text("'graphite'"))
+    brand_color: Mapped[str | None] = mapped_column(String(7))
+    card_color: Mapped[str | None] = mapped_column(String(7))
+    number_color: Mapped[str | None] = mapped_column(String(7))
+    links: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    banner_url: Mapped[str | None] = mapped_column(Text)
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+
+
+class StoreAsset(Base):
+    """An uploaded image for the order page (logo, background or banner)."""
+    __tablename__ = "store_assets"
+    __table_args__ = (UniqueConstraint("store_id", "kind", name="uq_store_assets_store_kind"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False
+    )
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+
+
+class OrderRating(Base):
+    """One star rating per order, left by the customer after pickup."""
+    __tablename__ = "order_ratings"
+    __table_args__ = (CheckConstraint("stars BETWEEN 1 AND 5", name="ck_order_ratings_stars"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False, unique=True
+    )
+    stars: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
     )
 
 

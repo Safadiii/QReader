@@ -9,7 +9,16 @@ from .schema import Base
 
 load_dotenv()
 
-DATABASE_URL = os.environ["DATABASE_URL"]
+def database_url() -> str:
+    """Hosts like Render hand out postgres:// URLs; SQLAlchemy needs the driver named."""
+    url = os.environ["DATABASE_URL"]
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
+
+DATABASE_URL = database_url()
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, echo=False)
 

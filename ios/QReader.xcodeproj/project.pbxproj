@@ -1,0 +1,429 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		10C68659462037968B77E675 /* OrderClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE207E78B9A45F68A043D71 /* OrderClient.swift */; };
+		82B49DEBE7DCD099CE6133FF /* QReaderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE1D613866CC858FC248298F /* QReaderApp.swift */; };
+		A1F680760D184D554CF326E1 /* OrderClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE207E78B9A45F68A043D71 /* OrderClient.swift */; };
+		BFD483FEC003BAB3DD34B7F8 /* ClipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F60CE669D11601D7B24BE01 /* ClipView.swift */; };
+		C4B23D307A046F8148F12573 /* ClipApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9EEAA9052710AB8EADCDD0 /* ClipApp.swift */; };
+		F30635CA32BB391B4FAED4CD /* QReaderClip.app in Embed App Clips */ = {isa = PBXBuildFile; fileRef = 13EC39602839C803D0001FD5 /* QReaderClip.app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		55B72E25CF1AB2AF15E99CF9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 67A7344F8DEABAA0AE3ABE61 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BF7378B2348839324BFA78E;
+			remoteInfo = QReaderClip;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5A537B82DE9F9B96E623D530 /* Embed App Clips */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/AppClips";
+			dstSubfolderSpec = 16;
+			files = (
+				F30635CA32BB391B4FAED4CD /* QReaderClip.app in Embed App Clips */,
+			);
+			name = "Embed App Clips";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		13EC39602839C803D0001FD5 /* QReaderClip.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = QReaderClip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1BE207E78B9A45F68A043D71 /* OrderClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderClient.swift; sourceTree = "<group>"; };
+		6112B04587052A558C02CD01 /* QReaderClip.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QReaderClip.entitlements; sourceTree = "<group>"; };
+		8F60CE669D11601D7B24BE01 /* ClipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipView.swift; sourceTree = "<group>"; };
+		C016596FA83F04A166F5514E /* QReader.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = QReader.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CAE6E36E3ADA93AA72FE1FC1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		EC9EEAA9052710AB8EADCDD0 /* ClipApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipApp.swift; sourceTree = "<group>"; };
+		EE1D613866CC858FC248298F /* QReaderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QReaderApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		6E5573B820514B362FC85AE6 = {
+			isa = PBXGroup;
+			children = (
+				C728E1F651C69939637EB1DD /* App */,
+				CB74BD61ABB886F6F55DCF01 /* Clip */,
+				E6FC15AF37962E6A7758E562 /* Shared */,
+				CD0E62CC36E6B91015774A9D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C728E1F651C69939637EB1DD /* App */ = {
+			isa = PBXGroup;
+			children = (
+				EE1D613866CC858FC248298F /* QReaderApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		CB74BD61ABB886F6F55DCF01 /* Clip */ = {
+			isa = PBXGroup;
+			children = (
+				EC9EEAA9052710AB8EADCDD0 /* ClipApp.swift */,
+				8F60CE669D11601D7B24BE01 /* ClipView.swift */,
+				CAE6E36E3ADA93AA72FE1FC1 /* Info.plist */,
+				6112B04587052A558C02CD01 /* QReaderClip.entitlements */,
+			);
+			path = Clip;
+			sourceTree = "<group>";
+		};
+		CD0E62CC36E6B91015774A9D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C016596FA83F04A166F5514E /* QReader.app */,
+				13EC39602839C803D0001FD5 /* QReaderClip.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E6FC15AF37962E6A7758E562 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				1BE207E78B9A45F68A043D71 /* OrderClient.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5BF7378B2348839324BFA78E /* QReaderClip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0CED554D8365BCA4ED6EB069 /* Build configuration list for PBXNativeTarget "QReaderClip" */;
+			buildPhases = (
+				D7B335AF8EC193898A6D7045 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = QReaderClip;
+			packageProductDependencies = (
+			);
+			productName = QReaderClip;
+			productReference = 13EC39602839C803D0001FD5 /* QReaderClip.app */;
+			productType = "com.apple.product-type.application.on-demand-install-capable";
+		};
+		DB94B693D55F680E88D1DEE9 /* QReader */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B3392884ACC9FFA34D3AE1A8 /* Build configuration list for PBXNativeTarget "QReader" */;
+			buildPhases = (
+				34D67A8613CC77F2BABA0CA2 /* Sources */,
+				5A537B82DE9F9B96E623D530 /* Embed App Clips */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5DF4723CD1F7850F713854A5 /* PBXTargetDependency */,
+			);
+			name = QReader;
+			packageProductDependencies = (
+			);
+			productName = QReader;
+			productReference = C016596FA83F04A166F5514E /* QReader.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		67A7344F8DEABAA0AE3ABE61 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					5BF7378B2348839324BFA78E = {
+						DevelopmentTeam = "";
+					};
+					DB94B693D55F680E88D1DEE9 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = 85000F5B2514C301106B2B9B /* Build configuration list for PBXProject "QReader" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 6E5573B820514B362FC85AE6;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CD0E62CC36E6B91015774A9D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DB94B693D55F680E88D1DEE9 /* QReader */,
+				5BF7378B2348839324BFA78E /* QReaderClip */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		34D67A8613CC77F2BABA0CA2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1F680760D184D554CF326E1 /* OrderClient.swift in Sources */,
+				82B49DEBE7DCD099CE6133FF /* QReaderApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7B335AF8EC193898A6D7045 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C4B23D307A046F8148F12573 /* ClipApp.swift in Sources */,
+				BFD483FEC003BAB3DD34B7F8 /* ClipView.swift in Sources */,
+				10C68659462037968B77E675 /* OrderClient.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5DF4723CD1F7850F713854A5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BF7378B2348839324BFA78E /* QReaderClip */;
+			targetProxy = 55B72E25CF1AB2AF15E99CF9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4F67F1C28365CE301F5D92D8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Clip/QReaderClip.entitlements;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Clip/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.qreader.Clip;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5FA63C19BEE56CE85D7A92E0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Clip/QReaderClip.entitlements;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Clip/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.qreader.Clip;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7376D41B0B43778CF83FFF1F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.qreader;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8BA4F07D420A5323F8DF4FDA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER_BASE = com.example.qreader;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9E6FACCE39AEE192F89AFEC9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.qreader;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C78C11FA2A5CE9728218EC65 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER_BASE = com.example.qreader;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0CED554D8365BCA4ED6EB069 /* Build configuration list for PBXNativeTarget "QReaderClip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5FA63C19BEE56CE85D7A92E0 /* Debug */,
+				4F67F1C28365CE301F5D92D8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		85000F5B2514C301106B2B9B /* Build configuration list for PBXProject "QReader" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C78C11FA2A5CE9728218EC65 /* Debug */,
+				8BA4F07D420A5323F8DF4FDA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B3392884ACC9FFA34D3AE1A8 /* Build configuration list for PBXNativeTarget "QReader" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7376D41B0B43778CF83FFF1F /* Debug */,
+				9E6FACCE39AEE192F89AFEC9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 67A7344F8DEABAA0AE3ABE61 /* Project object */;
+}

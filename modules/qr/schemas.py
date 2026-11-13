@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from uuid import UUID
 from datetime import datetime
 
 from database.schema import OrderStatus
+from modules.stores.schemas import StoreSettingsResponse
 
 class QRCodeResponse(BaseModel):
     id: UUID
@@ -21,3 +22,12 @@ class PublicOrderResponse(BaseModel):
     status: OrderStatus
     ready_at: datetime | None
     customer_coming_at: datetime | None
+    ring_requested_at: datetime | None
+    # The customer's own star rating, once given.
+    rating: int | None
+    # How the store wants the order page to look and behave.
+    design: StoreSettingsResponse
+
+
+class RatingBody(BaseModel):
+    stars: int = Field(ge=1, le=5)

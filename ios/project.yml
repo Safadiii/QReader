@@ -1,0 +1,50 @@
+name: QReader
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "17.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    # Fill these in once you have a paid Apple Developer account.
+    DEVELOPMENT_TEAM: ""
+    PRODUCT_BUNDLE_IDENTIFIER_BASE: com.example.qreader
+targets:
+  QReader:
+    type: application
+    platform: iOS
+    sources: [App, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.qreader
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: QReaderClip
+        embed: true
+        codeSign: true
+  QReaderClip:
+    type: application.on-demand-install-capable
+    platform: iOS
+    sources: [Clip, Shared]
+    entitlements:
+      path: Clip/QReaderClip.entitlements
+      properties:
+        com.apple.developer.parent-application-identifiers: ["$(AppIdentifierPrefix)com.example.qreader"]
+        com.apple.developer.associated-domains: ["appclips:qreader.example.com"]
+        aps-environment: development
+    info:
+      path: Clip/Info.plist
+      properties:
+        CFBundleDisplayName: QReader
+        UILaunchScreen: {}
+        NSAppClip:
+          NSAppClipRequestEphemeralUserNotification: true
+          NSAppClipRequestLocationConfirmation: false
+        # Dev only: lets the simulator reach http://localhost. Remove for release.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.qreader.Clip
+        GENERATE_INFOPLIST_FILE: YES
