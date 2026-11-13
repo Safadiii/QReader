@@ -1,9 +1,14 @@
+PyJWT==2.15.1
+SQLAlchemy==2.1.8
 fastapi==0.162.4
+h2==4.4.1
+httpx==0.28.1
 pillow==13.0.0
-psycopg==3.3.8
 psycopg-binary==3.3.8
+psycopg==3.3.8
 pydantic==2.14.3
 python-dotenv==1.2.4
+pywebpush==2.5.0
 qrcode==8.2
-SQLAlchemy==2.1.8
+tzdata
 uvicorn==0.54.0

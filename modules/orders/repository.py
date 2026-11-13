@@ -1,10 +1,11 @@
 import uuid
+from datetime import date
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
-from database.schema import Store, Order, OrderStatusHistory
+from database.schema import Store, Order, OrderRating, OrderStatusHistory
 
 class OrderRepository:
     def __init__(self, db: Session):
@@ -20,6 +21,24 @@ class OrderRepository:
         statement = (select(Order).where(Order.store_id == store_id)
                     .order_by(Order.created_at.desc()).limit(100))
         return self.db.scalars(statement).all()
+
+    def get_since(self, store_id: uuid.UUID, first_day: date) -> list[Order]:
+        """Every order from `first_day` on, with its QR loaded (for analytics)."""
+        statement = (
+            select(Order)
+            .where(Order.store_id == store_id, Order.order_date >= first_day)
+            .options(selectinload(Order.qr_code))
+            .order_by(Order.created_at.asc())
+        )
+        return list(self.db.scalars(statement).all())
+
+    def get_ratings_since(self, store_id: uuid.UUID, first_day: date) -> list[int]:
+        statement = (
+            select(OrderRating.stars)
+            .join(Order, Order.id == OrderRating.order_id)
+            .where(Order.store_id == store_id, Order.order_date >= first_day)
+        )
+        return list(self.db.scalars(statement).all())
 
     def add(self, order: Order):
         self.db.add(order)

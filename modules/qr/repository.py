@@ -3,7 +3,7 @@ from sqlalchemy import select
 from uuid import UUID
 
 from modules.orders.repository import OrderRepository
-from database.schema import Order, QRCode
+from database.schema import Order, OrderRating, QRCode
 
 class QRRepository:
     def __init__(self, db: Session):
@@ -26,3 +26,6 @@ class QRRepository:
     def add(self, qr: QRCode) -> None:
         self.db.add(qr)
         self.db.flush()
+
+    def get_rating(self, order_id: UUID) -> OrderRating | None:
+        return self.db.scalar(select(OrderRating).where(OrderRating.order_id == order_id))

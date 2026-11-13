@@ -11,7 +11,8 @@ from fastapi import HTTPException, status
 from qrcode.image.svg import SvgPathFillImage
 from sqlalchemy.orm import Session
 
-from database.schema import Order, OrderStatus, QRCode
+from database.schema import Order, OrderRating, OrderStatus, QRCode
+from modules.stores.services import StoreService
 from .repository import QRRepository
 from .schemas import PublicOrderResponse, QRCodeResponse
 
@@ -193,14 +194,17 @@ class QRService:
             raise self._not_found()
         return qr, order
 
-    @staticmethod
-    def _public(order: Order) -> PublicOrderResponse:
+    def _public(self, order: Order) -> PublicOrderResponse:
+        rating = self.repository.get_rating(order.id)
         return PublicOrderResponse(
+            rating=rating.stars if rating else None,
+            design=StoreService(self.db).get_settings(order.store_id),
             store_name=order.store.name,
             order_number=order.order_number,
             status=order.status,
             ready_at=order.ready_at,
             customer_coming_at=order.customer_coming_at,
+            ring_requested_at=order.ring_requested_at,
         )
 
     def track(self, token: str) -> PublicOrderResponse:
@@ -233,6 +237,24 @@ class QRService:
                 self.db.commit()
             else:
                 self.db.rollback()
+            return self._public(order)
+        except Exception:
+            self.db.rollback()
+            raise
+
+
+    def rate(self, token: str, stars: int) -> PublicOrderResponse:
+        """The customer rates a collected order. Rating again replaces the earlier one."""
+        try:
+            _, order = self._resolve(token)
+            if order.status != OrderStatus.COLLECTED:
+                raise HTTPException(status_code=409, detail="Order has not been collected yet")
+            rating = self.repository.get_rating(order.id)
+            if rating is None:
+                rating = OrderRating(order_id=order.id)
+                self.db.add(rating)
+            rating.stars = stars
+            self.db.commit()
             return self._public(order)
         except Exception:
             self.db.rollback()
