@@ -1,4 +1,6 @@
 .venv
 .env
 __pycache__/
-.gitignore
+*.gitignore
+node_modules/
+.next/
