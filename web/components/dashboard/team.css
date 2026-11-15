@@ -1,0 +1,191 @@
+/* Team and Screens pages. Builds on forms.css (fm-*). */
+
+.tm-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tm-owner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid var(--ok);
+  border-radius: 18px;
+  background: rgba(127, 230, 174, 0.06);
+}
+
+.tm-avatar {
+  display: grid;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--field);
+  border: 1px solid var(--line);
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.tm-who {
+  min-width: 0;
+  flex: 1;
+}
+
+.tm-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tm-name small {
+  margin-left: 6px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.tm-phone {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--muted);
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
+.tm-badge {
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tm-badge[data-role="owner"] {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.tm-badge[data-role="manager"] {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.tm-list {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.tm-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 14px;
+  padding: 14px 18px;
+}
+
+.tm-row + .tm-row {
+  border-top: 1px solid var(--line);
+}
+
+.tm-row[data-off="true"] .tm-who {
+  opacity: 0.5;
+}
+
+.tm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tm-select {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.tm-danger {
+  color: var(--warn);
+}
+
+.tm-empty {
+  padding: 22px 18px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.tm-secret {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px dashed var(--ok);
+  border-radius: 14px;
+  background: rgba(127, 230, 174, 0.05);
+}
+
+.tm-code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  user-select: all;
+}
+
+.tm-error {
+  color: var(--warn);
+  font-size: 14px;
+}
+
+.tm-perms {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.tm-perms b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Screens */
+
+.sc-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.sc-url {
+  flex: 1 1 260px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--field);
+  color: var(--ink);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+}

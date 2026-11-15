@@ -24,7 +24,7 @@ export function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.get("email"), password: form.get("password") }),
+        body: JSON.stringify({ phone: form.get("phone"), password: form.get("password") }),
       });
       if (res.ok) {
         // A full page load, so every screen starts with the new session.
@@ -46,8 +46,16 @@ export function LoginForm() {
         <p className="lg-sub">Personel girişi · Staff sign-in</p>
 
         <label className="lg-field">
-          <span>E-posta · Email</span>
-          <input name="email" type="email" autoComplete="username" required autoFocus />
+          <span>Telefon · Phone</span>
+          <input
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="username"
+            placeholder="+961 3 123 456"
+            required
+            autoFocus
+          />
         </label>
         <label className="lg-field">
           <span>Şifre · Password</span>

@@ -26,7 +26,7 @@ function callOut(number: number) {
   say(`Order ${number} is ready`, "en-US");
 }
 
-export function WaitingScreen() {
+export function WaitingScreen({ token }: { token?: string } = {}) {
   const [board, setBoard] = useState<Board | null>(null);
   const [offline, setOffline] = useState(false);
   const [voice, setVoice] = useState(false);
@@ -38,8 +38,10 @@ export function WaitingScreen() {
     let stopped = false;
     const tick = async () => {
       try {
-        const res = await fetch("/api/waiting", { cache: "no-store" });
-        if (res.status === 401) reloadTo("/login?next=/waiting");
+        const res = await fetch(token ? `/api/screen/${encodeURIComponent(token)}/data` : "/api/waiting", {
+          cache: "no-store",
+        });
+        if (res.status === 401 && !token) reloadTo("/login?next=/waiting");
         if (!res.ok) throw new Error();
         const next = (await res.json()) as Board;
         if (stopped) return;
@@ -73,7 +75,7 @@ export function WaitingScreen() {
       stopped = true;
       clearInterval(id);
     };
-  }, []);
+  }, [token]);
 
   const toggleVoice = () => {
     const on = !voice;

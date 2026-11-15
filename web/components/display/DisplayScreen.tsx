@@ -35,7 +35,13 @@ function readSettings(): Settings {
   };
 }
 
-export function DisplayScreen() {
+type DisplayProps = {
+  /** When opened from a screen link: its token, and the store's name. */
+  token?: string;
+  storeName?: string;
+};
+
+export function DisplayScreen({ token, storeName: linkStoreName }: DisplayProps = {}) {
   const stageRef = useRef<HTMLElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -53,9 +59,9 @@ export function DisplayScreen() {
   /* Read the URL. Browser-only, so it runs after mount. */
   useEffect(() => {
     // A timer, not an animation frame: frames pause while the tab is hidden.
-    const id = setTimeout(() => setSettings(readSettings()), 0);
+    const id = setTimeout(() => setSettings({ ...readSettings(), ...(linkStoreName ? { storeName: linkStoreName } : {}) }), 0);
     return () => clearTimeout(id);
-  }, []);
+  }, [linkStoreName]);
 
   /** Tells the 3D scene where the QR card is, in stage pixels. */
   const syncLayout = useCallback(() => {
@@ -156,7 +162,7 @@ export function DisplayScreen() {
     const tick = async () => {
       let latest: DisplayOrder | null;
       try {
-        latest = await fetchCurrentOrder();
+        latest = await fetchCurrentOrder(token);
       } catch {
         if (!cancelled) setOffline(true);
         return;
@@ -177,7 +183,7 @@ export function DisplayScreen() {
       cancelled = true;
       clearInterval(id);
     };
-  }, [settings, phase, order, onScan]);
+  }, [settings, phase, order, onScan, token]);
 
   /** Demo: hit the tracking endpoint like a phone would, then play the scan. */
   const demoScan = useCallback(async () => {

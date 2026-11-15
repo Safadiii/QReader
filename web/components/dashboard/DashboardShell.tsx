@@ -5,24 +5,28 @@ import { usePathname } from "next/navigation";
 import "./dashboard.css";
 import { reloadTo } from "@/lib/navigate";
 import { useLang } from "@/lib/i18n";
+import { ROLE_LABEL, atLeast, type Role } from "@/lib/roles";
+import { useMe } from "@/lib/use-me";
 
-const NAV = [
-  { href: "/dashboard", tr: "Siparişler", en: "Orders" },
-  { href: "/dashboard/analytics", tr: "Analiz", en: "Analytics" },
-  { href: "/dashboard/page", tr: "Sipariş sayfası", en: "Order page" },
-  { href: "/dashboard/settings", tr: "Ayarlar", en: "Settings" },
+const NAV: { href: string; tr: string; en: string; min: Role }[] = [
+  { href: "/dashboard", tr: "Siparişler", en: "Orders", min: "staff" },
+  { href: "/dashboard/analytics", tr: "Analiz", en: "Analytics", min: "manager" },
+  { href: "/dashboard/page", tr: "Sipariş sayfası", en: "Order page", min: "manager" },
+  { href: "/dashboard/team", tr: "Ekip", en: "Team", min: "manager" },
+  { href: "/dashboard/screens", tr: "Ekranlar (iPad, TV)", en: "Screens (iPad, TV)", min: "manager" },
+  { href: "/dashboard/settings", tr: "Ayarlar", en: "Settings", min: "manager" },
 ];
 
-/** Full-screen views meant for their own device; they open in a new tab. */
-const SCREENS = [
-  { href: "/kitchen", tr: "Mutfak ekranı", en: "Kitchen screen" },
-  { href: "/display", tr: "Müşteri ekranı (QR)", en: "Customer screen (QR)" },
-  { href: "/waiting", tr: "Bekleme ekranı (TV)", en: "Waiting screen (TV)" },
-];
+/** Full-screen views meant for their own device; they open in a new tab. The iPad and TV
+ * screens are opened from their links on the Screens page, not from here. */
+const SCREENS = [{ href: "/kitchen", tr: "Mutfak ekranı", en: "Kitchen screen" }];
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { t } = useLang();
+  const me = useMe();
+  // Until we know who is signed in, show only what everyone may see.
+  const role = me?.role ?? "staff";
   return (
     <div className="ds-shell">
       <aside className="ds-side">
@@ -31,7 +35,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </Link>
 
         <nav className="ds-nav" aria-label="Dashboard">
-          {NAV.map((item) => (
+          {NAV.filter((item) => atLeast(role, item.min)).map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -52,6 +56,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </a>
           ))}
         </nav>
+
+        {me && (
+          <div className="ds-who">
+            <b>{me.name}</b>
+            <span>
+              {t(ROLE_LABEL[me.role].tr, ROLE_LABEL[me.role].en)}
+              {me.store ? ` · ${me.store}` : ""}
+            </span>
+          </div>
+        )}
 
         <button
           className="ds-logout"

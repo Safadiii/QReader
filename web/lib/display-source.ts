@@ -16,9 +16,12 @@ export type DisplayOrder = {
 };
 
 /** The order to show now, or null when there is nothing to scan. Throws if offline. */
-export async function fetchCurrentOrder(): Promise<DisplayOrder | null> {
-  const res = await fetch("/api/display", { cache: "no-store" });
-  if (res.status === 401) reloadTo("/login?next=/display");
+export async function fetchCurrentOrder(token?: string): Promise<DisplayOrder | null> {
+  // Opened from its link: the link is the key. Otherwise the staff member's sign-in is.
+  const res = await fetch(token ? `/api/screen/${encodeURIComponent(token)}/data` : "/api/display", {
+    cache: "no-store",
+  });
+  if (res.status === 401 && !token) reloadTo("/login?next=/display");
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error ?? `Display request failed (${res.status})`);
   return body.order ?? null;

@@ -7,21 +7,21 @@ const json = (body: unknown, status: number, headers: Record<string, string> = {
 /** Staff sign-in: { email, password }. Sets the session cookie. */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
-  const email = String(body?.email ?? "");
+  const phone = String(body?.phone ?? "");
   const password = String(body?.password ?? "");
-  if (!email || !password) return json({ error: "Enter your email and password." }, 422);
+  if (!phone || !password) return json({ error: "Enter your phone number and password." }, 422);
 
   let res: Response;
   try {
     res = await backend("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ phone, password }),
     });
   } catch {
     return json({ error: "Can't reach the server. Try again." }, 502);
   }
-  if (res.status === 401 || res.status === 422) return json({ error: "Wrong email or password." }, 401);
+  if (res.status === 401 || res.status === 422) return json({ error: "Wrong phone number or password." }, 401);
   if (res.status === 429) return json({ error: "Too many attempts. Try again in 15 minutes." }, 429);
   if (!res.ok) return json({ error: "Sign-in is unavailable right now." }, 502);
 
@@ -32,6 +32,8 @@ export async function POST(request: Request) {
     name: staff.name,
     role: staff.role,
   });
-  if (!value) return json({ error: "SESSION_SECRET is not set on the web server." }, 500);
+  if (!value) {
+    return json({ error: "The server is missing SESSION_SECRET (32+ characters) in web/.env.local." }, 500);
+  }
   return json({ name: staff.name, store: staff.store_name }, 200, { "Set-Cookie": sessionCookie(value, request) });
 }

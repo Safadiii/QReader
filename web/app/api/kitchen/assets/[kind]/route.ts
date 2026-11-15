@@ -1,4 +1,4 @@
-import { backend, staffStore, SIGN_IN } from "@/lib/backend";
+import { backend, staffAtLeast } from "@/lib/backend";
 
 const KINDS = new Set(["logo", "background", "banner"]);
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -7,8 +7,9 @@ const json = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
 async function forward(request: Request, kind: string, init: RequestInit) {
-  const store = await staffStore(request);
-  if (!store) return json(SIGN_IN, 401);
+  const auth = await staffAtLeast(request, "manager");
+  if ("denied" in auth) return auth.denied;
+  const store = auth.member.storeId;
   if (!KINDS.has(kind)) return json({ error: "Unknown image." }, 404);
   try {
     const res = await backend(`/stores/${store}/assets/${kind}`, init);

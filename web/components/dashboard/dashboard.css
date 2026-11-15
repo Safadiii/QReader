@@ -147,3 +147,25 @@
     display: none;
   }
 }
+
+/* Who is signed in, at the bottom of the sidebar */
+
+.ds-who {
+  margin: 22px 10px 0;
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.ds-who b {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .ds-who {
+    display: none;
+  }
+}

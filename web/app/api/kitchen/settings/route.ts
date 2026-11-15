@@ -1,4 +1,4 @@
-import { backend, staffStore, SIGN_IN } from "@/lib/backend";
+import { backend, staffAtLeast, staffStore, SIGN_IN } from "@/lib/backend";
 
 /* Staff routes: a signed-in session is required. */
 
@@ -30,8 +30,9 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const store = await staffStore(request);
-  if (!store) return json(SIGN_IN, 401);
+  const auth = await staffAtLeast(request, "manager");
+  if ("denied" in auth) return auth.denied;
+  const store = auth.member.storeId;
   const body = await request.json().catch(() => null);
   if (!body) return json({ error: "Invalid request." }, 422);
   try {
