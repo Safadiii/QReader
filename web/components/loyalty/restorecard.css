@@ -1,0 +1,64 @@
+.rs-link {
+  justify-self: center;
+  margin-top: 10px;
+  padding: 6px 4px;
+  border: 0;
+  background: none;
+  color: var(--muted, #6b625b);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.rs-form {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 360px);
+  margin-top: 10px;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--muted, #6b625b);
+}
+
+.rs-row {
+  display: flex;
+  gap: 8px;
+}
+
+.rs-row input {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--line, #e7e3dc);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ink, #1b1512) 6%, transparent);
+  color: var(--ink, #1b1512);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+}
+
+.rs-row button {
+  height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink, #1b1512);
+  color: var(--bg, #fff);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rs-row button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.rs-form p {
+  color: var(--warn, #b93a0e);
+}

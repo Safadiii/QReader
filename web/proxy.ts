@@ -5,6 +5,7 @@ import { atLeast } from "@/lib/roles";
 /** Dashboard pages that staff may not open. The API checks the role again on every call. */
 const MANAGER_PAGES = [
   "/dashboard/analytics",
+  "/dashboard/extras",
   "/dashboard/page",
   "/dashboard/settings",
   "/dashboard/team",

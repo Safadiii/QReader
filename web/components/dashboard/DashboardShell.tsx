@@ -17,6 +17,7 @@ const ICON: Record<string, string> = {
   "/dashboard/screens": "M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM12 17v.01",
   "/dashboard/team": "M9 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.1a4 4 0 0 1 0 7.8M21 21v-2a4 4 0 0 0-3-3.9",
   "/dashboard/page": "M12 21a9 9 0 0 1 0-18c5 0 9 3.6 9 8 0 3-2.5 4-5 4h-2a2 2 0 0 0-1 3.7c.6.6.2 2.3-1 2.3zM7.5 11v.01M10.5 7.5v.01M15 8v.01",
+  "/dashboard/extras": "M12 3l2.5 5.5L20 9.3l-4 4 1 5.7-5-2.8-5 2.8 1-5.7-4-4 5.5-.8z",
   "/dashboard/settings": "M10.3 4.3a1.7 1.7 0 0 1 3.4 0 1.7 1.7 0 0 0 2.6 1.1 1.7 1.7 0 0 1 2.4 2.4 1.7 1.7 0 0 0 1.1 2.6 1.7 1.7 0 0 1 0 3.4 1.7 1.7 0 0 0-1.1 2.6 1.7 1.7 0 0 1-2.4 2.4 1.7 1.7 0 0 0-2.6 1.1 1.7 1.7 0 0 1-3.4 0 1.7 1.7 0 0 0-2.6-1.1 1.7 1.7 0 0 1-2.4-2.4 1.7 1.7 0 0 0-1.1-2.6 1.7 1.7 0 0 1 0-3.4 1.7 1.7 0 0 0 1.1-2.6 1.7 1.7 0 0 1 2.4-2.4 1.7 1.7 0 0 0 2.6-1.1zM9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0",
 };
 
@@ -68,6 +69,7 @@ const NAV: { href: string; tr: string; en: string; min: Role; group: 1 | 2 }[] =
   { href: "/dashboard/analytics", tr: "Analiz", en: "Analytics", min: "manager", group: 2 },
   { href: "/dashboard/team", tr: "Ekip", en: "Team", min: "manager", group: 2 },
   { href: "/dashboard/page", tr: "Sipariş sayfası", en: "Order page", min: "manager", group: 2 },
+  { href: "/dashboard/extras", tr: "Ekstra özellikler", en: "Extra features", min: "manager", group: 2 },
   { href: "/dashboard/settings", tr: "Ayarlar", en: "Settings", min: "manager", group: 2 },
 ];
 

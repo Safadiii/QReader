@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from database.schema import NotificationType, Order, OrderStatus, OrderStatusHistory
+from modules.loyalty.services import LoyaltyService
 from modules.notifications.services import NotificationService
 
 from .repository import OrderRepository
@@ -110,6 +111,8 @@ class OrderService:
 
             elif new_status == OrderStatus.COLLECTED:
                 order.completed_at = now
+                # The customer's loyalty stamp for this order counts from now.
+                LoyaltyService(self.db).confirm_order(order.id)
 
             history = OrderStatusHistory(
                 order_id=order.id,

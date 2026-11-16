@@ -91,99 +91,117 @@ export function TeamView() {
     if (body) setSecret({ name: m.name, phone: m.phone, password: body.temporary_password });
   };
 
+  const active = members ? members.filter((m) => m.is_active).length : 0;
+  const canAdd = atLeast(myRole, "manager");
+
+  const memberRow = (m: Member) => (
+    <li key={m.id} className="tm-row" data-off={!m.is_active}>
+      <div className="tm-avatar">{m.name.slice(0, 1).toUpperCase()}</div>
+      <div className="tm-who">
+        <div className="tm-name">
+          {m.name}
+          {m.id === me && <small>{t("(siz)", "(you)")}</small>}
+          {!m.is_active && <small>{t("çıkarıldı", "removed")}</small>}
+        </div>
+        <div className="tm-phone">{m.phone}</div>
+      </div>
+      {!(canManage(m) && myRole === "owner" && m.is_active) && (
+        <span className="tm-badge" data-role={m.role}>{label(m.role)}</span>
+      )}
+      {canManage(m) && (
+        <div className="tm-actions">
+          {myRole === "owner" && m.is_active && (
+            <select
+              className="tm-select"
+              value={m.role}
+              aria-label={t("Rol", "Role")}
+              onChange={(e) => void setRole(m, e.target.value as Role)}
+            >
+              <option value="manager">{label("manager")}</option>
+              <option value="staff">{label("staff")}</option>
+            </select>
+          )}
+          {m.is_active && (
+            <button className="fm-ghost" onClick={() => void reset(m)}>
+              {t("Şifre sıfırla", "Reset password")}
+            </button>
+          )}
+          <button className={`fm-ghost${m.is_active ? " tm-danger" : ""}`} onClick={() => void setActive(m, !m.is_active)}>
+            {m.is_active ? t("Çıkar", "Remove") : t("Geri al", "Restore")}
+          </button>
+        </div>
+      )}
+    </li>
+  );
+
   return (
     <div className="fm-page">
-      <div className="tm-head">
-        <div>
-          <h1 className="fm-title">{t("Ekip", "Team")}</h1>
-          <p className="fm-sub">
-            {members ? t(`${members.filter((m) => m.is_active).length} aktif üye`, `${members.filter((m) => m.is_active).length} active members`) : ""}
-          </p>
-        </div>
-        <button className="fm-primary" onClick={() => { setAdding(true); setSecret(null); }}>
-          {t("Üye ekle", "Add member")}
-        </button>
-      </div>
+      <h1 className="fm-title">{t("Ekip", "Team")}</h1>
+      <p className="fm-sub">{members ? t(`${active} aktif üye`, `${active} active members`) : ""}</p>
+
+      {/* Who can do what, first: it is the thing to know before adding anyone. */}
+      <section className="tm-roles" aria-label={t("Roller", "Roles")}>
+        {(
+          [
+            ["owner", "her şeyi görür ve yapar; yöneticileri ve personeli yönetir.", "sees and does everything; manages managers and staff."],
+            ["manager", "analiz, sipariş sayfası, ayarlar, ekranlar; personel ekler ve çıkarır.", "analytics, order page, settings, screens; adds and removes staff."],
+            ["staff", "yalnızca siparişler ve mutfak ekranı.", "orders and the kitchen screen only."],
+          ] as [Role, string, string][]
+        ).map(([role, tr, en]) => (
+          <div className="tm-role" key={role} data-role={role}>
+            <span className="tm-badge" data-role={role}>{label(role)}</span>
+            <p>{t(tr, en)}</p>
+          </div>
+        ))}
+      </section>
 
       {error && <div className="fm-notice">{error}</div>}
 
-      {secret && <SecretCard secret={secret} onClose={() => setSecret(null)} />}
+      <section className="tm-members">
+        <header className="tm-membersHead">
+          <h2>
+            {t("Üyeler", "Members")}
+            {members && <span>{members.length}</span>}
+          </h2>
+          {canAdd && !adding && (
+            <button className="fm-primary" onClick={() => { setAdding(true); setSecret(null); }}>
+              + {t("Üye ekle", "Add member")}
+            </button>
+          )}
+        </header>
 
-      {adding && (
-        <AddMember
-          myRole={myRole}
-          onClose={() => setAdding(false)}
-          onAdded={(s) => {
-            setAdding(false);
-            setSecret(s);
-            void load();
-          }}
-        />
-      )}
+        {secret && <SecretCard secret={secret} onClose={() => setSecret(null)} />}
 
-      {owner && (
-        <div className="tm-owner">
-          <div className="tm-avatar">{owner.name.slice(0, 1).toUpperCase()}</div>
-          <div className="tm-who">
-            <div className="tm-name">
-              {owner.name}
-              {owner.id === me && <small>{t("(siz)", "(you)")}</small>}
-            </div>
-            <div className="tm-phone">{owner.phone}</div>
-          </div>
-          <span className="tm-badge" data-role="owner">{label("owner")}</span>
-        </div>
-      )}
-
-      <ul className="tm-list">
-        {members && others.length === 0 && (
-          <li className="tm-empty">{t("Henüz başka üye yok. “Üye ekle” ile başlayın.", "No other members yet. Use “Add member” to start.")}</li>
+        {adding && (
+          <AddMember
+            myRole={myRole}
+            onClose={() => setAdding(false)}
+            onAdded={(s) => {
+              setAdding(false);
+              setSecret(s);
+              void load();
+            }}
+          />
         )}
-        {others.map((m) => (
-          <li key={m.id} className="tm-row" data-off={!m.is_active}>
-            <div className="tm-avatar">{m.name.slice(0, 1).toUpperCase()}</div>
-            <div className="tm-who">
-              <div className="tm-name">
-                {m.name}
-                {m.id === me && <small>{t("(siz)", "(you)")}</small>}
-                {!m.is_active && <small>{t("çıkarıldı", "removed")}</small>}
-              </div>
-              <div className="tm-phone">{m.phone}</div>
-            </div>
-            <span className="tm-badge" data-role={m.role}>{label(m.role)}</span>
-            {canManage(m) && (
-              <div className="tm-actions">
-                {myRole === "owner" && m.is_active && (
-                  <select
-                    className="tm-select"
-                    value={m.role}
-                    aria-label={t("Rol", "Role")}
-                    onChange={(e) => void setRole(m, e.target.value as Role)}
-                  >
-                    <option value="manager">{label("manager")}</option>
-                    <option value="staff">{label("staff")}</option>
-                  </select>
-                )}
-                {m.is_active && (
-                  <button className="fm-ghost" onClick={() => void reset(m)}>
-                    {t("Şifre sıfırla", "Reset password")}
-                  </button>
-                )}
-                <button className={`fm-ghost${m.is_active ? " tm-danger" : ""}`} onClick={() => void setActive(m, !m.is_active)}>
-                  {m.is_active ? t("Çıkar", "Remove") : t("Geri al", "Restore")}
-                </button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
 
-      <section className="fm-card" style={{ marginTop: 16 }}>
-        <h2>{t("Roller", "Roles")}</h2>
-        <ul className="tm-perms">
-          <li><b>{label("owner")}</b>: {t("her şeyi görür ve yapar; yöneticileri ve personeli yönetir.", "sees and does everything; manages managers and staff.")}</li>
-          <li><b>{label("manager")}</b>: {t("analiz, sipariş sayfası, ayarlar, ekranlar; personel ekler ve çıkarır.", "analytics, order page, settings, screens; adds and removes staff.")}</li>
-          <li><b>{label("staff")}</b>: {t("yalnızca siparişler ve mutfak ekranı.", "orders and the kitchen screen only.")}</li>
+        <ul className="tm-list">
+          {owner && (
+            <li className="tm-row tm-ownerRow">
+              <div className="tm-avatar">{owner.name.slice(0, 1).toUpperCase()}</div>
+              <div className="tm-who">
+                <div className="tm-name">
+                  {owner.name}
+                  {owner.id === me && <small>{t("(siz)", "(you)")}</small>}
+                </div>
+                <div className="tm-phone">{owner.phone}</div>
+              </div>
+              <span className="tm-badge" data-role="owner">{label("owner")}</span>
+            </li>
+          )}
+          {members && others.length === 0 && (
+            <li className="tm-empty">{t("Henüz başka üye yok. “Üye ekle” ile başlayın.", "No other members yet. Use “Add member” to start.")}</li>
+          )}
+          {others.map(memberRow)}
         </ul>
       </section>
     </div>
@@ -202,7 +220,7 @@ function SecretCard({ secret, onClose }: { secret: Secret; onClose: () => void }
     }
   };
   return (
-    <section className="tm-secret" style={{ marginBottom: 16 }} role="status">
+    <section className="tm-secret" role="status">
       <strong>
         {t(`${secret.name} için geçici şifre`, `Temporary password for ${secret.name}`)}
       </strong>
@@ -264,7 +282,7 @@ function AddMember({
   };
 
   return (
-    <form className="fm-card" onSubmit={(e) => void submit(e)}>
+    <form className="fm-card tm-add" onSubmit={(e) => void submit(e)}>
       <h2>{t("Yeni üye", "New member")}</h2>
       <div className="fm-grid2">
         <label className="fm-field">

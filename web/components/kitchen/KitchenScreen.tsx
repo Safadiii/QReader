@@ -78,6 +78,9 @@ export function KitchenScreen({ embedded = false }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const numberRef = useRef<HTMLInputElement>(null);
   const me = useMe();
+  /** Orders whose customer has a free reward waiting, and what the reward is called. */
+  const [rewards, setRewards] = useState<string[]>([]);
+  const [rewardName, setRewardName] = useState("");
   const [slip, setSlip] = useState<{ order: Order; x: number; y: number } | null>(null);
   const refresh = useCallback(async () => {
     try {
@@ -86,6 +89,7 @@ export function KitchenScreen({ embedded = false }: Props) {
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? tt("Siparişler yüklenemedi.", "Can't load orders."));
       setOrders(body.orders);
+      setRewards(Array.isArray(body.rewards) ? body.rewards : []);
       setOffline(null);
     } catch (err) {
       setOffline(
@@ -95,6 +99,13 @@ export function KitchenScreen({ embedded = false }: Props) {
       );
     }
     setNow(Date.now());
+  }, []);
+
+  useEffect(() => {
+    void fetch("/api/kitchen/loyalty", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((p) => p?.enabled && setRewardName(p.reward_name))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -151,6 +162,21 @@ export function KitchenScreen({ embedded = false }: Props) {
     setBusy(null);
   };
 
+  const giveReward = async (order: Order) => {
+    if (busy) return;
+    setBusy(order.id);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/kitchen/orders/${order.id}/redeem`, { method: "POST" });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) setNotice(body.error ?? tt("Ödül verilemedi.", "Could not give the reward."));
+    } catch {
+      setNotice(tt("Sunucuya ulaşılamıyor.", "Can't reach the server."));
+    }
+    await refresh();
+    setBusy(null);
+  };
+
   const ring = async (order: Order) => {
     if (busy) return;
     setBusy(order.id);
@@ -190,6 +216,14 @@ export function KitchenScreen({ embedded = false }: Props) {
     const next = NEXT[o.status];
     return (
       <div className="kd-actions">
+        {rewards.includes(o.id) && (
+          <button className="kd-reward" disabled={busy !== null} onClick={() => void giveReward(o)}>
+            <svg viewBox="0 0 24 24" aria-hidden>
+              <path d="M4 9h16v4H4zM6 13v7h12v-7M12 9v11M12 9C9 9 8 5.5 9.5 5S12 7.5 12 9zM12 9c3 0 4-3.5 2.5-4S12 7.5 12 9z" />
+            </svg>
+            {t(`${rewardName || "Ödül"} ver`, `Give ${rewardName || "reward"}`)}
+          </button>
+        )}
         {(o.status === "pending" || o.status === "preparing") && (
           <button
             className="qs-open"

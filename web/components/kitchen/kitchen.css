@@ -393,3 +393,41 @@
     min-height: 0;
   }
 }
+
+/* a customer with a free reward: the cashier gives it with one tap */
+.kd-reward {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-basis: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--ready);
+  border-radius: 10px;
+  background: #eef7f1;
+  color: var(--ready);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kd-reward:hover:not(:disabled) {
+  background: #dff0e6;
+}
+
+.kd-reward:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.kd-reward svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

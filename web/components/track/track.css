@@ -109,6 +109,16 @@
   padding: 26px 22px 20px;
 }
 
+/* the stamp card, right under the slip */
+.qt-loyalty {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  padding: 22px 22px 0;
+}
+
 .qt-button {
   display: flex;
   align-items: center;
@@ -338,7 +348,8 @@
 @media (prefers-reduced-motion: no-preference) {
   /* the buttons appear once the slip has finished printing */
   .qt-actions,
-  .qt-extras {
+  .qt-extras,
+  .qt-loyalty {
     animation: qt-in 0.5s ease 1.5s backwards;
   }
   .qt-stage[data-ringing="true"] .rc-receipt {

@@ -460,3 +460,127 @@ Index(
     unique=True,
     postgresql_where=NotificationSubscription.provider == NotificationProvider.WEB_PUSH,
 )
+
+
+# ---------------------------------------------------------------------------
+# Loyalty card: collect stamps, the next one is free.
+# ---------------------------------------------------------------------------
+
+class LoyaltyProgram(Base):
+    """A store's stamp-card settings. One row per store, made the first time it is saved."""
+    __tablename__ = "loyalty_programs"
+    __table_args__ = (
+        CheckConstraint("stamps_required BETWEEN 3 AND 30", name="ck_loyalty_stamps_range"),
+    )
+
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), primary_key=True
+    )
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("FALSE"))
+    stamps_required: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("10"))
+    reward_name: Mapped[str] = mapped_column(
+        String(80), nullable=False, server_default=text("'Free coffee'")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+
+
+class LoyaltyCard(Base):
+    """One customer's card at one store. The customer is a phone, known only by a secret it keeps."""
+    __tablename__ = "loyalty_cards"
+    __table_args__ = (
+        UniqueConstraint("store_id", "owner_hash", name="uq_loyalty_cards_store_owner"),
+        UniqueConstraint("store_id", "code", name="uq_loyalty_cards_store_code"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False
+    )
+    # sha256(store id + the phone's secret): the secret itself is never stored, and the
+    # same phone has an unrelated-looking owner hash at every store.
+    owner_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    # What the cashier types or reads: 8 characters, no look-alikes (shown as K7F2-9QXM).
+    code: Mapped[str] = mapped_column(String(8), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+
+
+class LoyaltyStamp(Base):
+    """One stamp, tied to the order that earns it. It counts once the order is collected."""
+    __tablename__ = "loyalty_stamps"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    card_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("loyalty_cards.id"), nullable=False
+    )
+    # Unique: an order can only ever give one stamp, to the first card that claimed it.
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False, unique=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class LoyaltyRedemption(Base):
+    """A reward given out: it uses up `stamps_used` stamps."""
+    __tablename__ = "loyalty_redemptions"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    card_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("loyalty_cards.id"), nullable=False
+    )
+    redeemed_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    order_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="SET NULL")
+    )
+    stamps_used: Mapped[int] = mapped_column(Integer, nullable=False)
+    reward_name: Mapped[str] = mapped_column(String(80), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+
+
+class LoyaltyIdentity(Base):
+    """A card saved to a phone number and a PIN, so stamps follow the customer to any phone."""
+    __tablename__ = "loyalty_identities"
+    __table_args__ = (UniqueConstraint("store_id", "phone", name="uq_loyalty_identities_store_phone"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False
+    )
+    card_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("loyalty_cards.id"), nullable=False, unique=True
+    )
+    # International form, +905551234567. The customer typed it; it is not verified by a message.
+    phone: Mapped[str] = mapped_column(String(20), nullable=False)
+    # salt$hash (scrypt) of the 4-digit PIN: the PIN is what stops someone else using the number.
+    pin_hash: Mapped[str] = mapped_column(String(200), nullable=False)
+    failed_attempts: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+
+
+Index("idx_loyalty_cards_store", LoyaltyCard.store_id)
+Index("idx_loyalty_stamps_card", LoyaltyStamp.card_id)
+Index("idx_loyalty_redemptions_card", LoyaltyRedemption.card_id, LoyaltyRedemption.created_at.desc())

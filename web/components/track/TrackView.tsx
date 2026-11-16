@@ -12,6 +12,9 @@ import {
 import { Ringer } from "@/lib/ringer";
 import { currentPushState, enablePush, type PushState } from "@/lib/webpush";
 import { Receipt, ReceiptPrinter } from "@/components/receipt/Receipt";
+import { StampCard, type CardState } from "@/components/loyalty/StampCard";
+import { SaveStamps } from "@/components/loyalty/SaveStamps";
+import { deviceSecret, rememberDevice } from "@/lib/device";
 import "./track.css";
 
 type Status = "pending" | "preparing" | "ready" | "collected" | "cancelled";
@@ -110,6 +113,8 @@ export function TrackView({ token, preview = false }: Props) {
   const [pushState, setPushState] = useState<PushState>("unsupported");
   const [pushBusy, setPushBusy] = useState(false);
   const [pushFailed, setPushFailed] = useState(false);
+  /** This phone's stamp card at this cafe, when the cafe has one. */
+  const [card, setCard] = useState<CardState | null>(null);
 
   useEffect(() => {
     if (preview) return;
@@ -151,6 +156,50 @@ export function TrackView({ token, preview = false }: Props) {
     window.parent.postMessage({ type: "qreader-preview-ready" }, window.location.origin);
     return () => window.removeEventListener("message", onMessage);
   }, [preview]);
+
+  /* Preview: a sample card, so the owner can see where it goes. */
+  useEffect(() => {
+    if (!preview) return;
+    const id = setTimeout(
+      () =>
+        setCard({
+          enabled: true,
+          goal: 10,
+          reward_name: "Free coffee",
+          code: "K7F29QXM",
+          stamps: 6,
+          pending: 1,
+          reward_ready: false,
+          rewards_redeemed: 0,
+          this_order: "pending",
+        }),
+      0,
+    );
+    return () => clearTimeout(id);
+  }, [preview]);
+
+  /* The stamp card: this phone shows its secret, gets its card back, and this order's stamp is
+     recorded. Asked again when the order's status changes, because a stamp counts once collected. */
+  const status = order?.status;
+  useEffect(() => {
+    if (preview || !status) return;
+    let cancelled = false;
+    void fetch(`/api/track/${encodeURIComponent(token)}/loyalty`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ device: deviceSecret() }),
+    })
+      .then((res) => (res.ok ? (res.json() as Promise<CardState>) : null))
+      .then((next) => {
+        if (cancelled) return;
+        if (next?.device) rememberDevice(next.device); // the server's copy outlives the browser's cleanup
+        setCard(next?.enabled ? next : null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [token, preview, status]);
 
   /* Report the scan, then keep the status fresh. */
   useEffect(() => {
@@ -313,6 +362,15 @@ export function TrackView({ token, preview = false }: Props) {
           </ReceiptPrinter>
 
           {order && problem === "offline" && <div className="qt-offline">Yeniden bağlanıyor…</div>}
+
+          {/* Hangs under the slip once it has printed. */}
+          {order && card && (
+            <div className="qt-loyalty">
+              <StampCard card={card} lang={lang} />
+              {/* Stamps follow the customer, not the browser: a phone number and a PIN. */}
+              {!preview && !card.phone_saved && <SaveStamps token={token} lang={lang} card={card} onDone={setCard} />}
+            </div>
+          )}
 
           <footer className="qt-actions">
             {order && (order.status === "pending" || order.status === "preparing") && (

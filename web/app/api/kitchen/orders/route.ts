@@ -1,4 +1,4 @@
-import { backend, staffStore, SIGN_IN } from "@/lib/backend";
+import { backend, staffSession, staffStore, SIGN_IN } from "@/lib/backend";
 
 /*
  * Staff routes for the kitchen screen and dashboard: a signed-in session is
@@ -15,7 +15,19 @@ export async function GET(request: Request) {
   try {
     const res = await backend(`/orders/?store_id=${store}`);
     if (!res.ok) return json({ error: `Orders request failed (${res.status}).` }, 502);
-    return json({ orders: await res.json() });
+    // Orders whose customer has a free reward waiting, for the badge on the ticket.
+    // Never allowed to break the board: no reward list is just no badges.
+    let rewards: string[] = [];
+    try {
+      const me = await staffSession(request);
+      if (me) {
+        const w = await backend(`/stores/${store}/loyalty/waiting?actor_id=${me.userId}`);
+        if (w.ok) rewards = (await w.json()).order_ids ?? [];
+      }
+    } catch {
+      /* keep going without badges */
+    }
+    return json({ orders: await res.json(), rewards });
   } catch {
     return json({ error: "Backend unreachable." }, 502);
   }

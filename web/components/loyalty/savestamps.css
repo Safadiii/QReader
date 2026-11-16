@@ -1,0 +1,82 @@
+/* The "keep my stamps" panel on the phone page. Colours come from the store's theme. */
+
+.sv-open,
+.sv-switch {
+  justify-self: center;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: var(--muted, #6b625b);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.sv-open {
+  margin-top: 10px;
+}
+
+.sv-form {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 360px);
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--line, #e7e3dc);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--ink, #1b1512) 6%, transparent);
+  color: var(--ink, #1b1512);
+  font-family: var(--font-body), system-ui, sans-serif;
+  /* the shared phone field was made for the white sign-in card: give it the store's colours */
+  --bg-deep: color-mix(in srgb, var(--ink, #1b1512) 8%, transparent);
+  --raise-2: color-mix(in srgb, var(--ink, #1b1512) 12%, transparent);
+}
+
+.sv-form .lg-list-wrap {
+  background: var(--bg, #0a0b0d);
+  border-color: var(--line, #e7e3dc);
+}
+
+.sv-title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.sv-help {
+  margin-top: -6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted, #6b625b);
+}
+
+.sv-form .lg-field input {
+  letter-spacing: 0.04em;
+}
+
+.sv-error {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warn, #b93a0e) 18%, transparent);
+  color: var(--ink, #1b1512);
+  font-size: 13px;
+}
+
+.sv-go {
+  min-height: 50px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink, #1b1512);
+  color: var(--bg, #fff);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sv-go:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

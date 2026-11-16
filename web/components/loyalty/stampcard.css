@@ -1,0 +1,157 @@
+/* The stamp card. Colours come from the page it is on. */
+
+.sc-card {
+  --sc-ink: var(--ink, #1b1512);
+  --sc-bg: var(--bg, #f6f4f0);
+  --sc-ok: var(--ok, #17683f);
+  --sc-line: var(--line, #e7e3dc);
+  --sc-muted: var(--muted, #6b625b);
+
+  display: grid;
+  gap: 14px;
+  width: min(100%, 360px);
+  padding: 16px 16px 14px;
+  border: 1px solid var(--sc-line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--sc-ink) 6%, transparent);
+  color: var(--sc-ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.sc-card[data-ready="true"] {
+  border-color: var(--sc-ok);
+}
+
+.sc-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sc-muted);
+}
+
+.sc-head b {
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  color: var(--sc-ink);
+}
+
+.sc-grid {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.sc-stamp {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  max-width: 46px;
+  width: 100%;
+  justify-self: center;
+  border: 1.5px dashed color-mix(in srgb, var(--sc-ink) 32%, transparent);
+  border-radius: 50%;
+  color: color-mix(in srgb, var(--sc-ink) 38%, transparent);
+}
+
+.sc-stamp svg {
+  width: 52%;
+  height: 52%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sc-stamp[data-state="on"] {
+  border: 1.5px solid var(--sc-ink);
+  background: var(--sc-ink);
+  color: var(--sc-bg);
+}
+
+.sc-stamp[data-state="next"] {
+  border-color: var(--sc-ink);
+  color: var(--sc-ink);
+}
+
+/* the free one at the end of the row */
+.sc-stamp[data-last="true"] {
+  border-style: solid;
+  border-color: var(--sc-ok);
+  color: var(--sc-ok);
+}
+
+.sc-card[data-ready="true"] .sc-stamp[data-last="true"] {
+  background: var(--sc-ok);
+  color: var(--on-ok, #fff);
+}
+
+.sc-text {
+  display: grid;
+  gap: 2px;
+}
+
+.sc-main {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.sc-alt {
+  font-size: 13px;
+  color: var(--sc-muted);
+}
+
+.sc-note {
+  margin-top: 6px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--sc-ink) 8%, transparent);
+  font-size: 13px;
+}
+
+.sc-card[data-ready="true"] .sc-note {
+  background: color-mix(in srgb, var(--sc-ok) 20%, transparent);
+}
+
+.sc-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--sc-line);
+  font-size: 12px;
+  color: var(--sc-muted);
+}
+
+.sc-foot code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  color: var(--sc-ink);
+  user-select: all;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sc-stamp[data-new="true"] {
+    animation: sc-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) 0.4s backwards;
+  }
+  .sc-stamp[data-state="next"] {
+    animation: sc-pulse 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes sc-pop {
+  from { transform: scale(0.2); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes sc-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}

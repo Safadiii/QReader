@@ -1,22 +1,70 @@
 /* Team and Screens pages. Builds on forms.css (fm-*). */
 
-.tm-head {
+/* ------------------------------------------------------------------ roles */
+
+.tm-roles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.tm-role {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.tm-role p {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.tm-role .tm-badge {
+  justify-self: start;
+}
+
+/* --------------------------------------------------------------- members */
+
+.tm-members {
+  display: grid;
+  gap: 14px;
+}
+
+.tm-membersHead {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.tm-owner {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 16px;
-  padding: 18px;
-  border: 1px solid var(--ok);
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--ok) 7%, transparent);
+.tm-membersHead h2 {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.tm-membersHead h2 span {
+  margin-left: 10px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--raise-2);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tm-add {
+  margin-bottom: 0;
+}
+
+.tm-ownerRow {
+  background: #f4faf6;
 }
 
 .tm-avatar {
@@ -26,7 +74,7 @@
   height: 44px;
   place-items: center;
   border-radius: 50%;
-  background: var(--field);
+  background: var(--bg);
   border: 1px solid var(--line);
   font-weight: 600;
   font-size: 17px;
@@ -73,8 +121,8 @@
 }
 
 .tm-badge[data-role="manager"] {
-  border-color: var(--warn);
-  color: var(--warn);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .tm-list {
@@ -84,8 +132,7 @@
   list-style: none;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: var(--panel);
-  box-shadow: var(--shadow);
+  background: #fff;
   overflow: hidden;
 }
 
@@ -139,7 +186,7 @@
   padding: 16px;
   border: 1px dashed var(--ok);
   border-radius: 14px;
-  background: color-mix(in srgb, var(--ok) 6%, transparent);
+  background: #f4faf6;
 }
 
 .tm-code {
@@ -154,19 +201,10 @@
   font-size: 14px;
 }
 
-.tm-perms {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding-left: 18px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.tm-perms b {
-  color: var(--ink);
-  font-weight: 600;
+@media (max-width: 760px) {
+  .tm-roles {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Screens */
