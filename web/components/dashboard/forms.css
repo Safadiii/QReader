@@ -1,11 +1,6 @@
 .fm-page {
-  --ink: #eceef1;
-  --muted: #8d929b;
-  --line: rgba(236, 238, 241, 0.14);
-  --panel: #131418;
-  --field: #0d0e11;
-  --ok: #7fe6ae;
-  --warn: #f0c36a;
+  --field: var(--bg-deep);
+  --ok: var(--ready);
   max-width: 760px;
 }
 
@@ -14,11 +9,10 @@
 }
 
 .fm-title {
-  font-family: var(--font-display), Impact, sans-serif;
-  font-size: 34px;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
   line-height: 1;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
 }
 
 .fm-sub {
@@ -37,6 +31,7 @@
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--panel);
+  box-shadow: var(--shadow);
 }
 
 .fm-card h2 {
@@ -83,7 +78,7 @@
 }
 
 .fm-input::placeholder {
-  color: #5c6068;
+  color: #9aa1ac;
 }
 
 .fm-grid2 {
@@ -113,7 +108,7 @@
 .fm-option[aria-pressed="true"] {
   border-color: var(--ink);
   background: var(--ink);
-  color: #0a0b0d;
+  color: var(--on-ink);
   font-weight: 600;
 }
 
@@ -155,7 +150,7 @@
   gap: 16px;
   margin-top: 8px;
   padding: 14px 0;
-  background: linear-gradient(transparent, #0a0b0d 35%);
+  background: linear-gradient(transparent, var(--bg) 35%);
 }
 
 .fm-saveNote {
@@ -173,7 +168,7 @@
   border: 0;
   border-radius: 12px;
   background: var(--ink);
-  color: #0a0b0d;
+  color: var(--on-ink);
   font: inherit;
   font-size: 16px;
   font-weight: 600;

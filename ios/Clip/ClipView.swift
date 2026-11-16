@@ -49,7 +49,7 @@ struct ClipView: View {
                         .buttonStyle(.borderedProminent).controlSize(.large)
                 }
                 if order.status == .ready && order.coming {
-                    Label("Mutfağa haber verildi · The kitchen knows", systemImage: "checkmark.circle.fill")
+                    Label("Yolda · On the way", systemImage: "checkmark.circle.fill")
                 }
             } else {
                 ProgressView()

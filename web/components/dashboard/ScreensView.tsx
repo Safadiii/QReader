@@ -4,6 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import "./forms.css";
 import "./team.css";
 import { useLang } from "@/lib/i18n";
+import { useMe } from "@/lib/use-me";
+import { QrCode } from "@/components/display/QrCode";
+import "@/components/display/display.css";
+import "./poster.css";
 
 type Links = { display: string; waiting: string };
 type Kind = "display" | "waiting";
@@ -13,6 +17,8 @@ export function ScreensView() {
   const [links, setLinks] = useState<Links | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const me = useMe();
+  const [poster, setPoster] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -21,6 +27,8 @@ export function ScreensView() {
       if (!res.ok) throw new Error(body.error ?? "Could not load the links.");
       setLinks(body);
       setError(null);
+      const p = await fetch("/api/poster", { cache: "no-store" });
+      if (p.ok) setPoster((await p.json()).url);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load the links.");
     }
@@ -106,6 +114,56 @@ export function ScreensView() {
           </section>
         );
       })}
+
+      <section className="fm-card pp-card">
+        <h2>{t("Yazdırılabilir QR (iPad yok)", "Printed QR (no iPad)")}</h2>
+        <p className="fm-help">
+          {t(
+            "iPad'iniz yoksa bu afişi bir kez yazdırıp kasaya asın. Müşteri kodu okutur, fişindeki sipariş numarasını yazar ve telefonu hazır olunca çalar. Her sipariş için ayrı QR gerekmez.",
+            "No iPad? Print this poster once and put it at the till. The customer scans it, types the number on their receipt, and their phone rings when the order is ready. No QR per order needed.",
+          )}
+        </p>
+
+        <div className="pp-sheet" aria-label={t("Afiş önizleme", "Poster preview")}>
+          <div className="pp-store">{me?.store ?? ""}</div>
+          <div className="pp-title">Okutun, siparişiniz hazır olunca haber verelim</div>
+          <div className="pp-sub">Scan and we&apos;ll buzz you when your order is ready</div>
+          <div className="pp-qr">{poster ? <QrCode value={poster} /> : null}</div>
+          <ol className="pp-steps">
+            <li>
+              <b>1</b>
+              <span>
+                QR kodu okutun
+                <i>Scan the code</i>
+              </span>
+            </li>
+            <li>
+              <b>2</b>
+              <span>
+                Fişteki numarayı yazın
+                <i>Type the number on your receipt</i>
+              </span>
+            </li>
+            <li>
+              <b>3</b>
+              <span>
+                Hazır olunca telefonunuz çalar
+                <i>Your phone rings when it&apos;s ready</i>
+              </span>
+            </li>
+          </ol>
+        </div>
+
+        <div className="sc-link">
+          <button className="fm-ghost" disabled={!poster} onClick={() => window.print()}>
+            {t("Yazdır", "Print")}
+          </button>
+          <input className="sc-url" readOnly value={poster ?? ""} aria-label={t("Afiş bağlantısı", "Poster link")} onFocus={(e) => e.currentTarget.select()} />
+          <button className="fm-ghost" disabled={!poster} onClick={() => void copy("poster", poster ?? "")}>
+            {copied === "poster" ? t("Kopyalandı", "Copied") : t("Kopyala", "Copy")}
+          </button>
+        </div>
+      </section>
 
       <section className="fm-card">
         <h2>{t("Mutfak ekranı", "Kitchen screen")}</h2>

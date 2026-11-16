@@ -1,0 +1,121 @@
+/* The printed QR poster: shown as a preview here, and the only thing that prints. */
+
+.pp-sheet {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: min(100%, 360px);
+  margin: 6px 0 18px;
+  padding: 28px 24px 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: #111;
+  text-align: center;
+}
+
+.pp-store {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.pp-title {
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.pp-sub {
+  font-size: 14px;
+  color: #555;
+}
+
+.pp-qr {
+  width: 70%;
+  aspect-ratio: 1;
+  margin: 10px 0;
+}
+
+.pp-steps {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.pp-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pp-steps b {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #111;
+  color: #fff;
+  font-size: 15px;
+}
+
+.pp-steps span {
+  display: grid;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.pp-steps i {
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 400;
+  color: #555;
+}
+
+@media print {
+  @page {
+    size: A5;
+    margin: 0;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .pp-sheet,
+  .pp-sheet * {
+    visibility: visible;
+  }
+
+  .pp-sheet {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+    padding: 14mm 12mm;
+    border: 0;
+    border-radius: 0;
+    align-content: center;
+    gap: 5mm;
+    background: #fff;
+  }
+
+  .pp-store { font-size: 16pt; }
+  .pp-title { font-size: 24pt; }
+  .pp-sub { font-size: 13pt; }
+  .pp-qr { width: 62%; }
+  .pp-steps { max-width: 100mm; gap: 4mm; }
+  .pp-steps b { width: 9mm; height: 9mm; font-size: 14pt; }
+  .pp-steps span { font-size: 13pt; }
+  .pp-steps i { font-size: 11pt; }
+}

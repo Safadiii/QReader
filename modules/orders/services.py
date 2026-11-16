@@ -106,6 +106,7 @@ class OrderService:
 
             if new_status == OrderStatus.READY:
                 order.ready_at = now
+                order.customer_seen_at = None
 
             elif new_status == OrderStatus.COLLECTED:
                 order.completed_at = now
@@ -144,6 +145,7 @@ class OrderService:
             if order.status != OrderStatus.READY:
                 raise HTTPException(409, "Only a ready order can be rung")
             order.ring_requested_at = datetime.now(timezone.utc)
+            order.customer_seen_at = None  # rung again: the kitchen waits for them to see it again
             NotificationService(self.db).enqueue(order, NotificationType.ORDER_READY)
             self.db.commit()
             self.db.refresh(order)

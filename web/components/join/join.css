@@ -1,0 +1,109 @@
+.jn-page {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 20px 16px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.jn-card {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 380px);
+  padding: 28px 22px 22px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+  text-align: center;
+}
+
+.jn-store {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.jn-title {
+  margin-top: 6px;
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.jn-sub {
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.jn-label {
+  margin-top: 18px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.jn-input {
+  width: 100%;
+  height: 72px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 40px;
+  font-weight: 500;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.jn-input:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.jn-error {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fdf0ea;
+  color: var(--prep);
+  font-size: 14px;
+}
+
+.jn-error span {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.jn-go {
+  height: 54px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jn-go:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.jn-note {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}

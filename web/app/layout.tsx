@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Anton, Geist, JetBrains_Mono } from "next/font/google";
+import { Anton, Space_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
 
 // latin-ext carries the Turkish letters (ş, ğ, ı, İ).
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const body = Space_Grotesk({
+  variable: "--font-body",
   subsets: ["latin", "latin-ext"],
 });
 
@@ -14,8 +14,9 @@ const display = Anton({
   subsets: ["latin", "latin-ext"],
 });
 
-const mono = JetBrains_Mono({
+const mono = Space_Mono({
   variable: "--font-mono",
+  weight: ["400", "700"],
   subsets: ["latin", "latin-ext"],
 });
 
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="tr"
-      className={`${geistSans.variable} ${display.variable} ${mono.variable} h-full antialiased`}
+      className={`${body.variable} ${display.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

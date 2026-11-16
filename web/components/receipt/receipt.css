@@ -1,0 +1,151 @@
+/*
+ * The order slip, shared by the till screen and the customer's phone.
+ * The page sets --w (slip width); everything else scales from it.
+ */
+
+.rc-slot {
+  --slot: 16px;
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 50%;
+  width: calc(var(--w, 360px) + 56px);
+  max-width: 100%;
+  height: var(--slot);
+  transform: translateX(-50%);
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(180deg, #050506, #1b1c20);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+/* The paper only exists below the slot: it comes out from behind it. */
+.rc-feed {
+  position: relative;
+  z-index: 1;
+  margin-top: 8px;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.rc-feed[data-fill="true"] {
+  position: absolute;
+  inset: 8px 0 0;
+  margin: 0;
+}
+
+/* The shadow lives here: the zigzag mask below would cut it off. */
+.rc-paper {
+  width: var(--w, 360px);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.16)) drop-shadow(0 26px 34px rgba(0, 0, 0, 0.24));
+  /* its own layer, so moving it never repaints the shadow or the mask */
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-origin: 50% 0;
+  color: #111113;
+  font-family: var(--font-mono), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.rc-receipt {
+  --tooth: calc(var(--w, 360px) / 22);
+  font-size: calc(var(--w, 360px) / 24);
+  line-height: 1.45;
+  padding: calc(var(--w, 360px) * 0.1) calc(var(--w, 360px) * 0.09) calc(var(--w, 360px) * 0.13);
+  background: #fff;
+  text-align: center;
+  /* torn edges, top and bottom */
+  -webkit-mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%;
+  -webkit-mask-composite: source-in;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%;
+  mask-composite: intersect;
+}
+
+.rc-store {
+  font-size: 1.35em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.rc-logo {
+  display: block;
+  margin: 0 auto;
+  max-width: 55%;
+  max-height: 3.4em;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.2);
+}
+
+.rc-sub {
+  margin-top: 0.2em;
+  font-size: 0.78em;
+  color: #6d7078;
+  letter-spacing: 0.04em;
+}
+
+.rc-rule {
+  margin: 0.9em 0;
+  border: 0;
+  border-top: 2px dashed rgba(17, 17, 19, 0.55);
+}
+
+.rc-numberLabel {
+  font-size: 0.78em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6d7078;
+}
+
+.rc-number {
+  font-size: 4.2em;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.rc-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85em;
+  color: #6d7078;
+}
+
+.rc-thanks {
+  font-size: 0.8em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ motion */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Printing: one long, smooth glide out of the slot. */
+  .rc-paper {
+    animation: rc-print 1.9s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+  }
+
+  /* Done: it is torn off the printer and falls. */
+  .rc-paper[data-leaving="true"] {
+    animation: rc-fall 1s cubic-bezier(0.5, 0, 0.85, 0.45) both;
+  }
+}
+
+@keyframes rc-print {
+  from { transform: translate3d(0, -104%, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+/* a small tug as it tears free, then gravity */
+@keyframes rc-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(0); animation-timing-function: ease-out; }
+  14% { transform: translate3d(0, 10px, 0) rotate(-0.6deg); animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.45); }
+  100% { transform: translate3d(5%, 118dvh, 0) rotate(6deg); }
+}

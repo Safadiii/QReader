@@ -10,6 +10,8 @@ const lanAddresses = Object.values(networkInterfaces())
 const nextConfig: NextConfig = {
   /* config options here */
   allowedDevOrigins: lanAddresses,
+  // Dev only: keeps the Next.js badge off the account avatar at the bottom of the rail.
+  devIndicators: { position: "bottom-right" },
   // The service worker must never be cached, or phones keep an old one.
   async headers() {
     return [

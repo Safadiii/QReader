@@ -1,8 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { FoilScene } from "@/lib/foil/scene";
-import { PANEL } from "@/lib/foil/textures";
+import { useEffect, useRef, useState } from "react";
 import {
   LINK_KINDS,
   assetUrl,
@@ -13,6 +11,7 @@ import {
 } from "@/lib/design";
 import { Ringer } from "@/lib/ringer";
 import { currentPushState, enablePush, type PushState } from "@/lib/webpush";
+import { Receipt, ReceiptPrinter } from "@/components/receipt/Receipt";
 import "./track.css";
 
 type Status = "pending" | "preparing" | "ready" | "collected" | "cancelled";
@@ -34,15 +33,8 @@ type Order = {
 export type PreviewMessage = { type: "qreader-preview"; design: Design; status: Status };
 
 type Problem = "invalid" | "expired" | "offline";
-type Phase = "loading" | "arriving" | "open";
-type FoilState = "pending" | "ready" | "none";
 
 const POLL_MS = 3000;
-/** The whole foil pouch may be at most this much of the screen's width. */
-const FOIL_MAX_WIDTH = 0.82;
-/** If the foil is not built this long after the order arrives, skip the animation. */
-const FOIL_PATIENCE_MS = 2500;
-
 const COPY: Record<Status, { tr: string; en: string }> = {
   pending: { tr: "Siparişiniz alındı", en: "We've got your order" },
   preparing: { tr: "Hazırlanıyor", en: "Being prepared" },
@@ -63,7 +55,7 @@ type Reply = { order: Order } | { problem: Problem };
 
 async function request(
   token: string,
-  action: "" | "/scan" | "/coming" | "/rating",
+  action: "" | "/scan" | "/seen" | "/coming" | "/rating",
   body?: unknown,
 ): Promise<Reply> {
   try {
@@ -101,17 +93,12 @@ type Props = {
 };
 
 export function TrackView({ token, preview = false }: Props) {
-  const stageRef = useRef<HTMLElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const foilRef = useRef<FoilScene | null>(null);
   const ringerRef = useRef<Ringer | null>(null);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [problem, setProblem] = useState<Problem | null>(null);
-  const [phase, setPhase] = useState<Phase>("loading");
-  const [foilState, setFoilState] = useState<FoilState>("pending");
-  const [cardShown, setCardShown] = useState(false);
+  /** When the slip was printed: the moment this phone first got the order. */
+  const [printedAt, setPrintedAt] = useState<Date | null>(null);
 
   const [ringerOn, setRingerOn] = useState(false);
   const [ringerNote, setRingerNote] = useState<"awake" | "keepOpen" | "blocked" | null>(null);
@@ -158,7 +145,7 @@ export function TrackView({ token, preview = false }: Props) {
         rating: null,
         design: e.data.design,
       });
-      setPhase("open");
+      setPrintedAt((t) => t ?? new Date());
     };
     window.addEventListener("message", onMessage);
     window.parent.postMessage({ type: "qreader-preview-ready" }, window.location.origin);
@@ -179,6 +166,7 @@ export function TrackView({ token, preview = false }: Props) {
       if ("order" in reply) {
         scanned = true;
         setOrder(reply.order);
+        setPrintedAt((t) => t ?? new Date());
         setProblem(null);
         finished = reply.order.status === "collected" || reply.order.status === "cancelled";
       } else {
@@ -195,112 +183,16 @@ export function TrackView({ token, preview = false }: Props) {
     };
   }, [token, preview]);
 
-  /** Tells the 3D scene where the order card is, in stage pixels. */
-  const syncLayout = useCallback(() => {
-    const stage = stageRef.current;
-    const card = cardRef.current;
-    const foil = foilRef.current;
-    if (!stage || !card || !foil) return;
-    const s = stage.getBoundingClientRect();
-    const c = card.getBoundingClientRect();
-    // The pouch is much wider than the panel it wraps. On a phone the full-size
-    // card would need a pouch wider than the screen, so the card starts small
-    // inside a pouch that fits and grows to full size as the foil opens.
-    const full = card.offsetWidth;
-    const wrapped = Math.min(full, s.width * FOIL_MAX_WIDTH * PANEL);
-    stage.style.setProperty("--wrap-scale", String(wrapped / full));
-    foil.setLayout({
-      width: s.width,
-      height: s.height,
-      cx: c.left - s.left + c.width / 2,
-      cy: c.top - s.top + c.height / 2,
-      cardSize: wrapped,
-    });
-  }, []);
-
-  /* Build the foil while the first status request is in flight. */
+  /* Once the order is ready and this page is on screen, tell the kitchen it was seen. */
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || preview) return;
-    let cancelled = false;
-    const skip = () => {
-      if (!cancelled) setFoilState("none");
+    if (preview || order?.status !== "ready") return;
+    const send = () => {
+      if (document.visibilityState === "visible") void request(token, "/seen");
     };
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      const id = setTimeout(skip, 0);
-      return () => clearTimeout(id);
-    }
-
-    import("@/lib/foil/scene")
-      .then(({ FoilScene }) => FoilScene.create(canvas, () => cancelled))
-      .then((foil) => {
-        if (!foil) return;
-        if (cancelled) return foil.dispose();
-        foilRef.current = foil;
-        setFoilState("ready");
-      })
-      .catch(skip); // No WebGL: go straight to the card.
-
-    return () => {
-      cancelled = true;
-      foilRef.current?.dispose();
-      foilRef.current = null;
-    };
-  }, [preview]);
-
-  /* Once we know the order: drop the foil in and unwrap it. */
-  const hasOrder = order !== null;
-  useEffect(() => {
-    if (!hasOrder || phase !== "loading") return;
-    if (foilState === "pending") {
-      const id = setTimeout(() => setFoilState((s) => (s === "pending" ? "none" : s)), FOIL_PATIENCE_MS);
-      return () => clearTimeout(id);
-    }
-    const foil = foilRef.current;
-    let cancelled = false;
-
-    const run = async () => {
-      if (foilState === "none" || !foil || !order) {
-        setPhase("open");
-        return;
-      }
-      setPhase("arriving");
-      const root = getComputedStyle(document.documentElement);
-      const displayFont = root.getPropertyValue("--font-display").trim() || "Impact";
-      const monoFont = root.getPropertyValue("--font-mono").trim() || "monospace";
-      // The canvas can only draw fonts that have finished loading.
-      await Promise.all([
-        document.fonts.load(`400 100px ${displayFont}`, `${order.storeName.toUpperCase()} ĞİŞ`),
-        document.fonts.load(`500 20px ${monoFont}`, "Sipariş"),
-      ]).catch(() => undefined);
-      if (cancelled) return;
-
-      syncLayout();
-      foil.setLabel({
-        storeName: order.storeName,
-        orderNumber: order.orderNumber,
-        displayFont,
-        monoFont,
-      });
-      const freeze = new URLSearchParams(window.location.search).get("freeze");
-      if (freeze !== null && process.env.NODE_ENV === "development") {
-        // Dev: ?freeze=1.2 holds the foil at one moment so it can be inspected.
-        setCardShown(true);
-        foil.freezeArriveAt(Number(freeze));
-        return;
-      }
-      await foil.playArrive({ onOpening: () => setCardShown(true) });
-      if (!cancelled) setPhase("open");
-    };
-
-    const id = setTimeout(() => void run(), 0);
-    return () => {
-      cancelled = true;
-      clearTimeout(id);
-    };
-    // `order` is read once, when it first arrives; later polls must not restart this.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasOrder, foilState, syncLayout]);
+    send();
+    document.addEventListener("visibilitychange", send);
+    return () => document.removeEventListener("visibilitychange", send);
+  }, [token, preview, order?.status, order?.ringKey]);
 
   /* Ring while the order is ready and nobody has answered yet. */
   const ringing = ringerOn && order?.status === "ready" && order.ringKey !== answered;
@@ -350,7 +242,7 @@ export function TrackView({ token, preview = false }: Props) {
   };
 
   const showProblem = problem !== null && (order === null || problem !== "offline");
-  const open = phase === "open";
+  const open = order !== null;
   const step = order ? STEPS.indexOf(order.status) : -1;
   const design = order?.design;
   // The store's language is shown large, the other one small underneath.
@@ -387,15 +279,12 @@ export function TrackView({ token, preview = false }: Props) {
 
   return (
     <main
-      ref={stageRef}
       className="qt-stage"
-      data-phase={phase}
       data-status={order?.status}
       data-ringing={ringing}
       style={design ? designStyle(design) : undefined}
     >
       {photo && <div className="qt-photo" style={{ backgroundImage: `url(${photo})` }} aria-hidden />}
-      <div className="qt-backdrop" aria-hidden />
 
       {showProblem ? (
         <div className="qt-problem">
@@ -404,39 +293,28 @@ export function TrackView({ token, preview = false }: Props) {
         </div>
       ) : (
         <>
-          <header className="qt-header">
-            {logo ? (
-              // eslint-disable-next-line @next/next/no-img-element -- the store's own upload
-              <img className="qt-logo" src={logo} alt={order?.storeName ?? ""} />
-            ) : (
-              <span className="qt-store">{order?.storeName}</span>
+          <ReceiptPrinter>
+            {order && copy && (
+              <Receipt store={order.storeName} logo={logo} number={order.orderNumber} when={printedAt}>
+                <hr className="rc-rule" />
+                <div className="qt-status" aria-live="polite">
+                  {copy.main}
+                </div>
+                <div className="qt-statusAlt">{copy.alt}</div>
+                {step >= 0 && (
+                  <ol className="qt-steps" aria-hidden>
+                    {STEPS.map((s, i) => (
+                      <li key={s} data-done={i <= step} />
+                    ))}
+                  </ol>
+                )}
+              </Receipt>
             )}
-            {order && problem === "offline" && <span className="qt-offline">Yeniden bağlanıyor…</span>}
-          </header>
+          </ReceiptPrinter>
 
-          <div className="qt-center">
-            <div ref={cardRef} className="qt-card" data-shown={open || cardShown}>
-              {order && copy && (
-                <>
-                  <div className="qt-label">Sipariş / Order</div>
-                  <div className="qt-number">{order.orderNumber}</div>
-                  <div className="qt-status" aria-live="polite">
-                    {copy.main}
-                  </div>
-                  <div className="qt-statusAlt">{copy.alt}</div>
-                  {step >= 0 && (
-                    <ol className="qt-steps" aria-hidden>
-                      {STEPS.map((s, i) => (
-                        <li key={s} data-done={i <= step} />
-                      ))}
-                    </ol>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
+          {order && problem === "offline" && <div className="qt-offline">Yeniden bağlanıyor…</div>}
 
-          <footer className="qt-actions" data-shown={open}>
+          <footer className="qt-actions">
             {order && (order.status === "pending" || order.status === "preparing") && (
               <>
                 {pushState !== "unsupported" && (
@@ -503,8 +381,8 @@ export function TrackView({ token, preview = false }: Props) {
                 <p className="qt-confirm" aria-live="polite">
                   <CheckIcon />
                   <span>
-                    Mutfağa haber verildi
-                    <small>The kitchen knows you&apos;re on your way</small>
+                    Yolda · On the way
+                    <small>The kitchen knows you&apos;re coming</small>
                   </span>
                 </p>
                 {ringing && (
@@ -571,7 +449,6 @@ export function TrackView({ token, preview = false }: Props) {
         </>
       )}
 
-      <canvas ref={canvasRef} className="qt-foil" aria-hidden />
     </main>
   );
 }

@@ -52,6 +52,11 @@ struct OrderClient {
         try JSONDecoder().decode(Order.self, from: try await send("", method: "GET"))
     }
 
+    /// Tells the kitchen the customer has the app open on a ready order.
+    func markSeen() async throws {
+        _ = try await send("/seen", method: "POST", body: [:])
+    }
+
     func imComing() async throws -> Order {
         try JSONDecoder().decode(Order.self, from: try await send("/coming", method: "POST", body: [:]))
     }

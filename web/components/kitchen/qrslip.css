@@ -1,0 +1,150 @@
+.qs-back {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(30, 34, 40, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* a small printer: the slip glides out of the slot like on the till screen */
+.qs-stage {
+  --w: min(78vw, 340px);
+  position: relative;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  width: calc(var(--w) + 56px);
+  max-width: 100%;
+  max-height: calc(100dvh - 32px);
+  padding-top: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 20px;
+  background: var(--metal);
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--line);
+  padding-bottom: 16px;
+}
+
+.qs-stage .rc-feed {
+  padding-bottom: 8px;
+}
+
+.qs-stage .qd-qrBox {
+  width: 70%;
+}
+
+.qs-wait {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 0.8em;
+  color: #6d7078;
+}
+
+.qs-close {
+  min-height: 44px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--graphite);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* top right corner of the ticket, so the Start and Cancel buttons keep their row */
+.qs-open {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.qs-open:hover {
+  background: var(--bg);
+}
+
+.qs-open svg {
+  width: 20px;
+  height: 20px;
+  vertical-align: -5px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ------------------------------------------------------------------ motion */
+
+@media (prefers-reduced-motion: no-preference) {
+  .qs-back {
+    animation: qs-fade 0.25s ease-out both;
+  }
+  .qs-back[data-closing="true"] {
+    animation: qs-unfade 0.22s ease-in both;
+  }
+
+  /* grows out of the button with a small overshoot, like an app opening */
+  .qs-stage {
+    animation: qs-pop 0.5s cubic-bezier(0.3, 1.45, 0.5, 1) both;
+  }
+  .qs-stage[data-closing="true"] {
+    animation: qs-shrink 0.24s cubic-bezier(0.5, 0, 0.9, 0.5) both;
+  }
+
+  /* the slip prints once the window has opened */
+  .qs-stage .rc-paper {
+    animation-delay: 0.3s;
+  }
+}
+
+@keyframes qs-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes qs-unfade {
+  to { opacity: 0; }
+}
+@keyframes qs-pop {
+  from {
+    opacity: 0;
+    transform: translate(var(--dx, 0px), var(--dy, 24px)) scale(0.12);
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes qs-shrink {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx, 0px), var(--dy, 24px)) scale(0.12);
+  }
+}

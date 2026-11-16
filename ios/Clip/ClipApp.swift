@@ -31,6 +31,7 @@ final class ClipModel: ObservableObject {
     private var client: OrderClient?
     private var poll: Task<Void, Never>?
     private var lastStatus: OrderStatus?
+    private var seenFor: String?
 
     func open(_ url: URL) {
         guard let (base, token) = OrderClient.parse(url) else { problem = .invalid; return }
@@ -53,6 +54,12 @@ final class ClipModel: ObservableObject {
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
             }
             lastStatus = o.status
+            // The app is open and polling, so the customer is looking at a ready order.
+            let key = o.ringRequestedAt ?? "first"
+            if o.status == .ready && seenFor != key {
+                seenFor = key
+                try? await client.markSeen()
+            }
         } catch let e as OrderError {
             if order == nil || e != .offline { problem = e }
         } catch {}

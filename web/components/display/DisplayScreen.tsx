@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchCurrentOrder, simulateScan, type DisplayOrder } from "@/lib/display-source";
-import type { FoilScene } from "@/lib/foil/scene";
+import { Receipt, ReceiptPrinter } from "@/components/receipt/Receipt";
 import { QrCode } from "./QrCode";
 import "./display.css";
 
-type Phase = "idle" | "wrapping" | "scanned";
+type Phase = "idle" | "scanned" | "leaving";
 
 type Settings = {
   storeName: string;
@@ -14,24 +14,21 @@ type Settings = {
   demo: boolean;
   /** Scan by itself every few seconds: handy for showing the animation. */
   auto: boolean;
-  /** Dev only: freeze the foil at this many seconds into the animation. */
-  freeze: number | null;
 };
 
-const SCANNED_HOLD_MS = 4200;
-const AUTO_SCAN_MS = 3800;
+const SCANNED_HOLD_MS = 3600;
+const LEAVE_MS = 1000;
+const AUTO_SCAN_MS = 5200;
 const POLL_MS = 2000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function readSettings(): Settings {
   const q = new URLSearchParams(window.location.search);
-  const freeze = q.get("freeze");
   return {
     storeName: q.get("store")?.trim() || "Demo Kahve",
     demo: q.has("demo") || process.env.NODE_ENV === "development",
     auto: q.has("auto"),
-    freeze: freeze === null ? null : Number(freeze),
   };
 }
 
@@ -42,19 +39,13 @@ type DisplayProps = {
 };
 
 export function DisplayScreen({ token, storeName: linkStoreName }: DisplayProps = {}) {
-  const stageRef = useRef<HTMLElement>(null);
-  const centerRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const foilRef = useRef<FoilScene | null>(null);
   const busyRef = useRef(false);
 
   const [settings, setSettings] = useState<Settings | null>(null);
   const [order, setOrder] = useState<DisplayOrder | null>(null);
+  const [printedAt, setPrintedAt] = useState<Date | null>(null);
   const [offline, setOffline] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
-  const [cardHidden, setCardHidden] = useState(false);
-  const [foilReady, setFoilReady] = useState(false);
 
   /* Read the URL. Browser-only, so it runs after mount. */
   useEffect(() => {
@@ -63,97 +54,23 @@ export function DisplayScreen({ token, storeName: linkStoreName }: DisplayProps 
     return () => clearTimeout(id);
   }, [linkStoreName]);
 
-  /** Tells the 3D scene where the QR card is, in stage pixels. */
-  const syncLayout = useCallback(() => {
-    const stage = stageRef.current;
-    const center = centerRef.current;
-    const card = cardRef.current;
-    const foil = foilRef.current;
-    if (!stage || !center || !card || !foil) return;
-    const s = stage.getBoundingClientRect();
-    const c = center.getBoundingClientRect();
-    // offset* ignores the float animation, so the foil lands on the resting spot
-    foil.setLayout({
-      width: s.width,
-      height: s.height,
-      cx: c.left - s.left + card.offsetLeft + card.offsetWidth / 2,
-      cy: c.top - s.top + card.offsetTop + card.offsetHeight / 2,
-      cardSize: card.offsetWidth,
-    });
+  const showOrder = useCallback((next: DisplayOrder | null) => {
+    setOrder(next);
+    setPrintedAt(next ? new Date() : null);
   }, []);
 
-  /* Load three.js and build the foil while the customer is still looking at the QR. */
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const stage = stageRef.current;
-    if (!canvas || !stage) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    let cancelled = false;
-    import("@/lib/foil/scene")
-      .then(({ FoilScene }) => FoilScene.create(canvas, () => cancelled))
-      .then((foil) => {
-        if (!foil) return;
-        if (cancelled) return foil.dispose();
-        foilRef.current = foil;
-        syncLayout();
-        setFoilReady(true);
-      })
-      .catch((err) => {
-        // No WebGL: the screen still works, it just skips the wrap.
-        console.warn("Foil animation unavailable", err);
-      });
-
-    const observer = new ResizeObserver(syncLayout);
-    observer.observe(stage);
-    return () => {
-      cancelled = true;
-      observer.disconnect();
-      foilRef.current?.dispose();
-      foilRef.current = null;
-    };
-  }, [syncLayout]);
-
   const onScan = useCallback(async () => {
-    if (busyRef.current || !order || !settings) return;
+    if (busyRef.current || !order) return;
     busyRef.current = true;
-    setPhase("wrapping");
-
-    const foil = foilRef.current;
-    if (foil) {
-      const root = getComputedStyle(document.documentElement);
-      const displayFont = root.getPropertyValue("--font-display").trim() || "Impact";
-      const monoFont = root.getPropertyValue("--font-mono").trim() || "monospace";
-      // The canvas can only draw fonts that have finished loading.
-      await Promise.all([
-        document.fonts.load(`400 100px ${displayFont}`, "DEMO KAHVE ĞİŞ"),
-        document.fonts.load(`500 20px ${monoFont}`, "Sipariş"),
-      ]).catch(() => undefined);
-
-      syncLayout();
-      foil.setLabel({
-        storeName: settings.storeName,
-        orderNumber: order.orderNumber,
-        displayFont,
-        monoFont,
-      });
-      await foil.play({
-        onCovered: () => setCardHidden(true),
-        onFalling: () => setPhase("scanned"),
-      });
-    } else {
-      await sleep(350);
-      setCardHidden(true);
-      setPhase("scanned");
-    }
-
+    setPhase("scanned");
     await sleep(SCANNED_HOLD_MS);
+    setPhase("leaving");
+    await sleep(LEAVE_MS);
     // Back to waiting: the poll below brings in the cashier's next order.
-    setOrder(null);
-    setCardHidden(false);
+    showOrder(null);
     setPhase("idle");
     busyRef.current = false;
-  }, [order, settings, syncLayout]);
+  }, [order, showOrder]);
 
   /* While idle, ask the backend which order to show and whether it was scanned. */
   useEffect(() => {
@@ -170,11 +87,11 @@ export function DisplayScreen({ token, storeName: linkStoreName }: DisplayProps 
       if (cancelled || busyRef.current) return;
       setOffline(false);
       if (latest && !latest.scanned) {
-        if (latest.token !== order?.token) setOrder(latest);
+        if (latest.token !== order?.token) showOrder(latest);
       } else if (latest && latest.token === order?.token) {
         void onScan();
       } else if (order) {
-        setOrder(null);
+        showOrder(null);
       }
     };
     void tick();
@@ -183,7 +100,7 @@ export function DisplayScreen({ token, storeName: linkStoreName }: DisplayProps 
       cancelled = true;
       clearInterval(id);
     };
-  }, [settings, phase, order, onScan, token]);
+  }, [settings, phase, order, onScan, token, showOrder]);
 
   /** Demo: hit the tracking endpoint like a phone would, then play the scan. */
   const demoScan = useCallback(async () => {
@@ -211,112 +128,49 @@ export function DisplayScreen({ token, storeName: linkStoreName }: DisplayProps 
     return () => clearTimeout(id);
   }, [settings?.auto, phase, order, demoScan]);
 
-  /* Dev: ?freeze=1.8 holds the foil at one moment so it can be inspected. */
-  useEffect(() => {
-    const foil = foilRef.current;
-    if (!foilReady || !foil || !settings || !order || settings.freeze === null) return;
-    const root = getComputedStyle(document.documentElement);
-    const displayFont = root.getPropertyValue("--font-display").trim() || "Impact";
-    const monoFont = root.getPropertyValue("--font-mono").trim() || "monospace";
-    let cancelled = false;
-    Promise.all([
-      document.fonts.load(`400 100px ${displayFont}`, "DEMO KAHVE ĞİŞ"),
-      document.fonts.load(`500 20px ${monoFont}`, "Sipariş"),
-    ]).then(() => {
-      if (cancelled) return;
-      syncLayout();
-      foil.setLabel({
-        storeName: settings.storeName,
-        orderNumber: order.orderNumber,
-        displayFont,
-        monoFont,
-      });
-      foil.freezeAt(settings.freeze ?? 0);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [foilReady, settings, order, syncLayout]);
-
   const storeName = settings?.storeName ?? "";
 
   return (
-    <main ref={stageRef} className="qd-stage" data-phase={phase} data-empty={!order}>
-      <div className="qd-backdrop" aria-hidden />
-
-      <header className="qd-header">
-        <span className="qd-store">{storeName}</span>
+    <main className="qd-stage" data-phase={phase} data-empty={!order}>
+      <ReceiptPrinter fill>
         {order && (
-          <span className="qd-orderTag">
-            Sipariş / Order <b>{order.orderNumber}</b>
-          </span>
-        )}
-      </header>
-
-      <div ref={centerRef} className="qd-center">
-        {order && (
-          <div
-            ref={cardRef}
+          <Receipt
             key={order.token}
-            className="qd-cardWrap"
-            data-hidden={cardHidden}
+            store={storeName}
+            number={order.orderNumber}
+            when={printedAt}
+            leaving={phase === "leaving"}
+            phase={phase}
           >
-            <span className="qd-bracket" aria-hidden />
-            <span className="qd-bracket" aria-hidden />
-            <span className="qd-bracket" aria-hidden />
-            <span className="qd-bracket" aria-hidden />
-            <div className="qd-card">
-              <QrCode value={order.trackingUrl} />
-              <div className="qd-sweep" aria-hidden />
-            </div>
-          </div>
-        )}
-
-        {settings && !order && phase === "idle" && (
-          <div className="qd-waiting" aria-live="polite">
-            <div className="qd-waitingTitle">
-              {offline ? "Bağlantı bekleniyor" : "Sıradaki sipariş bekleniyor"}
-            </div>
-            <div className="qd-waitingAlt">
-              {offline ? "Can't reach the server. Retrying…" : "Waiting for the next order"}
-            </div>
-          </div>
-        )}
-
-        <div className="qd-scanned" aria-live="polite">
-          {phase === "scanned" && order && (
-            <>
-              <svg className="qd-check" viewBox="0 0 52 52" aria-hidden>
-                <circle cx="26" cy="26" r="24" />
-                <path d="M15.5 26.5l7.2 7.2 13.8-14.4" />
-              </svg>
-              <div className="qd-scannedTitle">Tarandı</div>
-              <div className="qd-scannedLine">
-                Sipariş {order.orderNumber} telefonunuza bağlandı.
+            <div className="qd-qrBox">
+              <div className="qd-qrWrap" data-hidden={phase !== "idle"}>
+                <QrCode value={order.trackingUrl} />
               </div>
-              <div className="qd-scannedAlt">
-                Scanned. Order {order.orderNumber} is linked to your phone.
+              <div className="qd-done" data-on={phase !== "idle"} aria-live="polite">
+                <svg className="qd-check" viewBox="0 0 52 52" aria-hidden>
+                  <circle cx="26" cy="26" r="24" />
+                  <path d="M15.5 26.5l7.2 7.2 13.8-14.4" />
+                </svg>
+                <div className="qd-doneTitle">Tarandı</div>
+                <div className="qd-doneAlt">Scanned</div>
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            </div>
 
-      <footer className="qd-footer">
-        <div>
-          <div className="qd-prompt">Okutun, siparişiniz hazır olunca haber verelim</div>
-          <div className="qd-promptAlt">Scan and we&apos;ll buzz you when your order is ready</div>
-        </div>
-      </footer>
+            <div className="qd-prompt">Okutun, siparişiniz hazır olunca haber verelim</div>
+            <div className="qd-promptAlt">Scan and we&apos;ll buzz you when it&apos;s ready</div>
+          </Receipt>
+        )}
+      </ReceiptPrinter>
 
-      <canvas ref={canvasRef} className="qd-foil" aria-hidden />
+      {settings && !order && (
+        <div className="qd-waiting" aria-live="polite">
+          <div className="qd-waitingTitle">{offline ? "Bağlantı bekleniyor" : "Sıradaki sipariş bekleniyor"}</div>
+          <div className="qd-waitingAlt">{offline ? "Can't reach the server. Retrying…" : "Waiting for the next order"}</div>
+        </div>
+      )}
 
       {settings?.demo && (
-        <button
-          className="qd-demo"
-          onClick={() => void demoScan()}
-          disabled={phase !== "idle" || !order}
-        >
+        <button className="qd-demo" onClick={() => void demoScan()} disabled={phase !== "idle" || !order}>
           Simulate scan (S)
         </button>
       )}

@@ -1,8 +1,8 @@
 .wt-page {
-  --ink: #eceef1;
-  --muted: #8d929b;
-  --line: rgba(236, 238, 241, 0.14);
-  --ok: #7fe6ae;
+  --ink: #14171c;
+  --muted: #69707c;
+  --line: rgba(20, 24, 32, 0.12);
+  --ok: #18794e;
 
   position: relative;
   flex: 1;
@@ -10,8 +10,8 @@
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   color: var(--ink);
-  background: #0a0b0d;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  background: var(--metal);
+  font-family: var(--font-body), system-ui, sans-serif;
 }
 
 .wt-ready,
@@ -21,7 +21,7 @@
 
 .wt-preparing {
   border-left: 1px solid var(--line);
-  background: #0f1013;
+  background: rgba(40, 32, 22, 0.035);
 }
 
 .wt-heading {
@@ -69,7 +69,7 @@
 .wt-numbers li[data-fresh="true"] {
   border-color: var(--ok);
   background: var(--ok);
-  color: #06140c;
+  color: #fff;
 }
 
 .wt-small {
@@ -107,7 +107,7 @@
   padding: 0 16px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(20, 24, 32, 0.04);
   color: var(--muted);
   font: inherit;
   font-size: 14px;

@@ -1,24 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./kitchen.css";
 import { reloadTo } from "@/lib/navigate";
 import { tt, useLang, type Lang } from "@/lib/i18n";
-
-type Status = "pending" | "preparing" | "ready" | "collected" | "cancelled";
-
-type Order = {
-  id: string;
-  order_number: number;
-  order_date: string;
-  status: Status;
-  created_at: string;
-  ready_at: string | null;
-  completed_at: string | null;
-  customer_coming_at: string | null;
-  scanned_at: string | null;
-  ring_requested_at: string | null;
-};
+import { OrderNumber } from "@/components/ui/OrderNumber";
+import { useMe } from "@/lib/use-me";
+import { QrSlip } from "./QrSlip";
+import type { Order, Status } from "./types";
 
 const POLL_MS = 2000;
 
@@ -87,7 +76,9 @@ export function KitchenScreen({ embedded = false }: Props) {
   const [notice, setNotice] = useState<string | null>(null);
   const [typed, setTyped] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-
+  const numberRef = useRef<HTMLInputElement>(null);
+  const me = useMe();
+  const [slip, setSlip] = useState<{ order: Order; x: number; y: number } | null>(null);
   const refresh = useCallback(async () => {
     try {
       const res = await fetch("/api/kitchen/orders", { cache: "no-store" });
@@ -138,6 +129,7 @@ export function KitchenScreen({ embedded = false }: Props) {
     }
     await refresh();
     setBusy(null);
+    numberRef.current?.focus(); // ready for the next order straight away
   };
 
   const move = async (order: Order, status: Status) => {
@@ -175,48 +167,139 @@ export function KitchenScreen({ embedded = false }: Props) {
   };
 
   const all = orders ?? [];
-  const prepTimes = todays
-    .filter((o) => o.ready_at)
-    .map((o) => (new Date(o.ready_at!).getTime() - new Date(o.created_at).getTime()) / 1000);
-  const stats = [
-    { label: t("Bekleyen", "Waiting"), value: all.filter((o) => o.status === "pending" || o.status === "preparing").length },
-    { label: t("Hazır", "Ready"), value: all.filter((o) => o.status === "ready").length },
-    { label: t("Bugün teslim", "Picked up today"), value: todays.filter((o) => o.status === "collected").length },
-    {
-      label: t("Bugün ort. hazırlık", "Avg. prep today"),
-      value: duration(prepTimes.length ? prepTimes.reduce((a, b) => a + b, 0) / prepTimes.length : null, lang),
-    },
-  ];
+  const waitingCount = all.filter((o) => o.status === "pending" || o.status === "preparing").length;
+  const readyCount = all.filter((o) => o.status === "ready").length;
 
   const done = todays.filter((o) => o.status === "collected" || o.status === "cancelled");
+
+  /** One line saying where the customer is in the pickup. */
+  const customerLine = (o: Order) => {
+    if (o.status === "ready") {
+      if (o.customer_coming_at) return { tone: "go", text: t("Müşteri yolda", "On the way"), at: o.customer_coming_at };
+      if (o.customer_seen_at) return { tone: "seen", text: t("Müşteri gördü", "Saw it"), at: o.customer_seen_at };
+      return { tone: "wait", text: t("Henüz görmedi", "Not seen yet"), at: null };
+    }
+    return {
+      tone: o.scanned_at ? "seen" : "wait",
+      text: o.scanned_at ? t("QR okutuldu", "QR scanned") : t("QR okutulmadı", "QR not scanned"),
+      at: null,
+    };
+  };
+
+  const actions = (o: Order) => {
+    const next = NEXT[o.status];
+    return (
+      <div className="kd-actions">
+        {(o.status === "pending" || o.status === "preparing") && (
+          <button
+            className="qs-open"
+            aria-label={t(`${o.order_number} numaralı siparişin QR kodunu göster`, `Show QR for order ${o.order_number}`)}
+            title={t("QR fişini göster", "Show the QR slip")}
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setSlip({ order: o, x: r.left + r.width / 2, y: r.top + r.height / 2 });
+            }}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden>
+              <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z" />
+            </svg>
+          </button>
+        )}
+        {next && (
+          <button className="kd-go" disabled={busy !== null} onClick={() => void move(o, next.to)}>
+            {t(next.tr, next.en)}
+          </button>
+        )}
+        {o.status === "ready" && (
+          <button
+            className="kd-ghost"
+            disabled={busy !== null || o.scanned_at === null}
+            title={o.scanned_at === null ? t("Müşteri QR kodu okutmadı", "The customer hasn't scanned the QR") : undefined}
+            onClick={() => void ring(o)}
+          >
+            {t("Tekrar çal", "Ring again")}
+          </button>
+        )}
+        {(o.status === "pending" || o.status === "preparing") && (
+          <button
+            className="kd-ghost"
+            disabled={busy !== null}
+            onClick={() => {
+              if (window.confirm(t(`${o.order_number} numaralı sipariş iptal edilsin mi?`, `Cancel order ${o.order_number}?`)))
+                void move(o, "cancelled");
+            }}
+          >
+            {t("İptal", "Cancel")}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const line = (o: Order) => {
+    const c = customerLine(o);
+    return (
+      <p className="kd-line" data-tone={c.tone}>
+        {c.text}
+        {c.at && <span>{clock(c.at)}</span>}
+      </p>
+    );
+  };
 
   return (
     <main className="kd-page" data-embedded={embedded}>
       <header className="kd-top">
         <div>
-          <h1 className="kd-title">
-            {embedded ? t("Siparişler", "Orders") : t("Mutfak", "Kitchen")}
-          </h1>
+          <h1 className="kd-title">{embedded ? t("Siparişler", "Orders") : t("Mutfak", "Kitchen")}</h1>
+          {orders !== null && (
+            <p className="kd-meta">
+              <span className="kd-open">
+                <i aria-hidden />
+                {me?.store ? `${me.store} · ` : ""}
+                {t("açık", "open")}
+              </span>
+              {" · "}
+              {t(`${waitingCount} bekliyor`, `${waitingCount} waiting`)} ·{" "}
+              {t(`${readyCount} hazır`, `${readyCount} ready`)} ·{" "}
+              {t(`bugün ${todays.length} sipariş`, `${todays.length} orders today`)}
+            </p>
+          )}
         </div>
 
-        <form className="kd-new" onSubmit={(e) => void addOrder(e)}>
-          <label className="kd-newLabel" htmlFor="kd-number">
-            {t("Sipariş no", "Order no.")}
-          </label>
-          <input
-            id="kd-number"
-            className="kd-input"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            required
-            value={numberValue}
-            onChange={(e) => setTyped(e.target.value)}
-          />
-          <button className="kd-add" type="submit" disabled={busy !== null || orders === null}>
-            {t("+ Yeni sipariş", "+ New order")}
-          </button>
-        </form>
+        <div className="kd-tools">
+          <form className="kd-new" onSubmit={(e) => void addOrder(e)}>
+            <label className="kd-newLabel" htmlFor="kd-number">
+              {t("Sipariş no", "Order no.")}
+            </label>
+            <input
+              id="kd-number"
+              ref={numberRef}
+              autoFocus
+              onFocus={(e) => e.currentTarget.select()}
+              className="kd-input"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              required
+              value={numberValue}
+              onChange={(e) => setTyped(e.target.value)}
+            />
+            <button className="kd-add" type="submit" disabled={busy !== null || orders === null}>
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              {t("Yeni sipariş", "New order")}
+            </button>
+          </form>
+          {embedded && (
+            <a className="kd-kitchenLink" href="/kitchen" target="_blank" rel="noreferrer">
+              {t("Mutfak ekranı", "Kitchen screen")}
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <path d="M7 17 17 7M8 7h9v9" />
+              </svg>
+            </a>
+          )}
+        </div>
       </header>
 
       {(offline || notice) && (
@@ -225,88 +308,36 @@ export function KitchenScreen({ embedded = false }: Props) {
         </div>
       )}
 
-      {embedded && (
-        <dl className="kd-stats">
-          {stats.map((s) => (
-            <div key={s.label}>
-              <dt>{s.label}</dt>
-              <dd>{orders === null ? "—" : s.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-
       <section className="kd-board">
         {COLUMNS.map((col) => {
           // Oldest first, so the order that has waited longest is on top.
-          const list = (orders ?? [])
+          const list = all
             .filter((o) => o.status === col.status)
             .sort((a, b) => a.created_at.localeCompare(b.created_at));
           return (
             <div key={col.status} className="kd-col" data-status={col.status}>
               <h2 className="kd-colTitle">
-                {t(col.tr, col.en)}
+                <span>
+                  <i className="kd-dot" aria-hidden />
+                  {t(col.tr, col.en)}
+                </span>
                 <b>{list.length}</b>
               </h2>
               {orders !== null && list.length === 0 && <p className="kd-empty">{t(col.emptyTr, col.emptyEn)}</p>}
-              {list.map((o) => {
-                const next = NEXT[o.status];
-                return (
-                  <article key={o.id} className="kd-ticket" data-coming={o.customer_coming_at !== null}>
-                    {o.customer_coming_at && (
-                      <div className="kd-coming" role="status">
-                        {t("Müşteri geliyor", "Customer is coming")}
-                        <span>{clock(o.customer_coming_at)}</span>
-                      </div>
-                    )}
-                    <div className="kd-ticketMain">
-                      <div className="kd-number">{o.order_number}</div>
-                      <div className="kd-meta">
-                        <span>{minutesSince(o.created_at, now, lang)}</span>
-                        <span className="kd-scan" data-on={o.scanned_at !== null}>
-                          {o.scanned_at ? t("QR okutuldu", "Scanned") : t("QR okutulmadı", "Not scanned")}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="kd-actions">
-                      {next && (
-                        <button
-                          className="kd-go"
-                          disabled={busy !== null}
-                          onClick={() => void move(o, next.to)}
-                        >
-                          {t(next.tr, next.en)}
-                        </button>
-                      )}
-                      {o.status === "ready" && (
-                        <button
-                          className="kd-cancel"
-                          disabled={busy !== null || o.scanned_at === null}
-                          title={o.scanned_at === null ? t("Müşteri QR kodu okutmadı", "The customer hasn't scanned the QR") : undefined}
-                          onClick={() => void ring(o)}
-                        >
-                          {t("Tekrar çal", "Ring again")}
-                        </button>
-                      )}
-                      {(o.status === "pending" || o.status === "preparing") && (
-                        <button
-                          className="kd-cancel"
-                          disabled={busy !== null}
-                          onClick={() => {
-                            if (window.confirm(t(`${o.order_number} numaralı sipariş iptal edilsin mi?`, `Cancel order ${o.order_number}?`))) void move(o, "cancelled");
-                          }}
-                        >
-                          {t("İptal", "Cancel")}
-                        </button>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
+              {list.map((o) => (
+                <article key={o.id} className="kd-ticket" data-status={o.status}>
+                  <OrderNumber value={o.order_number} status={o.status} size={84} />
+                  <div className="kd-body">
+                    <p className="kd-age">{minutesSince(o.created_at, now, lang)}</p>
+                    {line(o)}
+                    {actions(o)}
+                  </div>
+                </article>
+              ))}
             </div>
           );
         })}
-      </section>
+        </section>
 
       {done.length > 0 && (
         <section className="kd-done">
@@ -323,6 +354,16 @@ export function KitchenScreen({ embedded = false }: Props) {
             ))}
           </ul>
         </section>
+      )}
+      {slip && (
+        <QrSlip
+          orderId={slip.order.id}
+          number={slip.order.order_number}
+          store={me?.store ?? ""}
+          printedAt={slip.order.created_at}
+          origin={{ x: slip.x, y: slip.y }}
+          onClose={() => setSlip(null)}
+        />
       )}
     </main>
   );

@@ -204,6 +204,7 @@ class QRService:
             status=order.status,
             ready_at=order.ready_at,
             customer_coming_at=order.customer_coming_at,
+            customer_seen_at=order.customer_seen_at,
             ring_requested_at=order.ring_requested_at,
         )
 
@@ -223,6 +224,23 @@ class QRService:
             self.db.rollback()
             raise
 
+    def seen(self, token: str) -> PublicOrderResponse:
+        """Record that the customer opened the page while the order is ready. Safe to call again."""
+        try:
+            qr, _ = self._resolve(token)
+            order = self.repository.lock_order(qr.order_id)
+            if order is None:
+                raise self._not_found()
+            if order.status == OrderStatus.READY and order.customer_seen_at is None:
+                order.customer_seen_at = datetime.now(timezone.utc)
+                self.db.commit()
+            else:
+                self.db.rollback()
+            return self._public(order)
+        except Exception:
+            self.db.rollback()
+            raise
+
     def coming(self, token: str) -> PublicOrderResponse:
         """Record that the customer is on their way. Only valid once the order is ready."""
         try:
@@ -233,7 +251,10 @@ class QRService:
             if order.status != OrderStatus.READY:
                 raise HTTPException(status_code=409, detail="Order is not ready for collection")
             if order.customer_coming_at is None:
-                order.customer_coming_at = datetime.now(timezone.utc)
+                now = datetime.now(timezone.utc)
+                order.customer_coming_at = now
+                if order.customer_seen_at is None:
+                    order.customer_seen_at = now  # tapping "I'm coming" means they saw it
                 self.db.commit()
             else:
                 self.db.rollback()

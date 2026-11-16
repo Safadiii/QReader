@@ -1,0 +1,35 @@
+.on {
+  --on-size: 84px;
+
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  min-width: var(--on-size);
+  height: calc(var(--on-size) * 0.8);
+  padding: 0 calc(var(--on-size) * 0.14);
+  border-radius: calc(var(--on-size) * 0.22);
+  background: rgba(20, 24, 32, 0.05);
+  color: var(--new);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: calc(var(--on-size) * 0.42);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.on[data-long="true"] {
+  font-size: calc(var(--on-size) * 0.34);
+}
+
+.on[data-status="preparing"] { color: var(--prep); }
+.on[data-status="ready"] { color: var(--ready); }
+
+.on[data-status="collected"],
+.on[data-status="cancelled"] {
+  color: var(--muted);
+}
+
+.on[data-status="cancelled"] {
+  text-decoration: line-through;
+}

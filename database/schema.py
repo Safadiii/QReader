@@ -27,8 +27,9 @@ from sqlalchemy import Enum as SQLEnum
 
 # Allowed application values (persisted as lowercase PostgreSQL enum labels).
 class UserRole(str, Enum):
-    ADMIN = "admin"
-    CASHIER = "cashier"
+    OWNER = "owner"      # one per store: sees and does everything
+    MANAGER = "manager"  # analytics, order page, settings, screens; adds and removes staff
+    STAFF = "staff"      # orders and the screens only
 
 
 class OrderStatus(str, Enum):
@@ -116,6 +117,9 @@ class Store(Base):
     timezone: Mapped[str] = mapped_column(
         String(64), nullable=False, server_default=text("'Asia/Beirut'")
     )
+    # Unguessable tokens for the iPad (customer QR) and TV (waiting) links; no sign-in needed.
+    display_token: Mapped[str | None] = mapped_column(String(64), unique=True)
+    waiting_token: Mapped[str | None] = mapped_column(String(64), unique=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("NOW()")
     )
@@ -133,7 +137,9 @@ class User(Base):
         UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(150), nullable=False)
-    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    # Staff sign in with their phone number, in international form: +9613123456.
+    phone: Mapped[str] = mapped_column(String(20), nullable=False, unique=True)
+    email: Mapped[str | None] = mapped_column(String(255), unique=True)
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     role: Mapped[UserRole] = mapped_column(user_role_enum, nullable=False)
     is_active: Mapped[bool] = mapped_column(
@@ -186,6 +192,8 @@ class Order(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Set when the customer taps "I'm coming" on their phone after the order is ready.
     customer_coming_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Set when the customer opens their phone page while the order is ready (they saw the alert).
+    customer_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Set each time staff tap "Ring again"; the customer's phone rings when it changes.
     ring_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

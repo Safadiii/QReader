@@ -1,16 +1,11 @@
 .lg-page {
-  --ink: #eceef1;
-  --muted: #8d929b;
-  --line: rgba(236, 238, 241, 0.14);
-
   flex: 1;
   min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 24px;
   color: var(--ink);
-  background: #0a0b0d;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
 }
 
 .lg-card {
@@ -18,17 +13,22 @@
   gap: 16px;
   width: min(100%, 380px);
   padding: 28px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: #131418;
+  border: 1px solid transparent;
+  border-radius: 22px;
+  /* a white card with a thin edge of polished steel */
+  background:
+    linear-gradient(var(--panel), var(--panel)) padding-box,
+    linear-gradient(150deg, #ffffff 0%, #c4c9d1 32%, #f3f4f6 52%, #9aa2ae 100%) border-box;
+  box-shadow: var(--shadow), 0 40px 80px -40px rgba(16, 24, 40, 0.25);
 }
 
 .lg-brand {
-  font-family: var(--font-display), Impact, sans-serif;
-  font-size: 34px;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
   line-height: 1;
-  letter-spacing: 0.02em;
   text-transform: uppercase;
+  color: var(--ink);
 }
 
 .lg-sub {
@@ -44,12 +44,17 @@
   color: var(--muted);
 }
 
+.lg-field input:focus {
+  border-color: var(--ink);
+  outline: none;
+}
+
 .lg-field input {
   min-height: 48px;
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: #0d0e11;
+  background: var(--bg-deep);
   color: var(--ink);
   font: inherit;
   font-size: 16px;
@@ -57,9 +62,9 @@
 
 .lg-error {
   padding: 10px 14px;
-  border: 1px solid #f0c36a;
+  border: 1px solid var(--warn);
   border-radius: 10px;
-  color: #f0c36a;
+  color: var(--warn);
   font-size: 14px;
 }
 
@@ -67,12 +72,13 @@
   min-height: 50px;
   border: 0;
   border-radius: 12px;
-  background: var(--ink);
-  color: #0a0b0d;
+  background: var(--graphite);
+  color: #fff;
   font: inherit;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 18px -8px rgba(16, 24, 40, 0.55);
 }
 
 .lg-submit:disabled {
@@ -91,7 +97,7 @@
   gap: 4px;
   padding: 4px;
   border-radius: 12px;
-  background: #0d0e11;
+  background: var(--bg-deep);
 }
 
 .lg-tabs button {
@@ -106,8 +112,9 @@
 }
 
 .lg-tabs button[aria-selected="true"] {
-  background: #23252b;
+  background: #fff;
   color: var(--ink);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12), inset 0 0 0 1px rgba(20, 24, 32, 0.06);
 }
 
 .lg-phone {
@@ -125,7 +132,7 @@
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: #0d0e11;
+  background: var(--bg-deep);
   color: var(--ink);
   font: inherit;
   font-size: 16px;
@@ -148,8 +155,8 @@
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #1a1c21;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(16, 24, 40, 0.18);
 }
 
 .lg-field .lg-list-wrap .lg-search {
@@ -184,7 +191,7 @@
 
 .lg-list button:hover,
 .lg-list [aria-selected="true"] button {
-  background: #2a2d34;
+  background: var(--raise-2);
 }
 
 .lg-dial {

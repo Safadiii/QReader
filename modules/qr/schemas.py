@@ -22,6 +22,7 @@ class PublicOrderResponse(BaseModel):
     status: OrderStatus
     ready_at: datetime | None
     customer_coming_at: datetime | None
+    customer_seen_at: datetime | None
     ring_requested_at: datetime | None
     # The customer's own star rating, once given.
     rating: int | None

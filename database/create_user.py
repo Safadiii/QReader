@@ -1,5 +1,6 @@
 """
-Create a staff login (and, the first time, the store itself).
+Create a team member (and, the first time, the store itself with its owner).
+Staff sign in with their phone number: type it with the country code, e.g. +961 3 123 456.
 
     python -m database.create_user
 
@@ -11,11 +12,12 @@ import getpass
 import sys
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from database.init_db import SessionLocal
 from database.schema import Store, User, UserRole
 from modules.auth.passwords import hash_password
+from modules.auth.phone import normalize_phone
 
 
 def ask(prompt: str) -> str:
@@ -53,11 +55,22 @@ def main() -> None:
             db.add(store)
             db.flush()
 
-        name = ask("Staff member's name: ")
-        email = ask("Email: ").lower()
-        if db.scalar(select(User).where(func.lower(User.email) == email)):
-            sys.exit("That email already has a login.")
-        role = UserRole.CASHIER if input("Role: [a]dmin or [c]ashier? [a] ").strip().lower() == "c" else UserRole.ADMIN
+        name = ask("Member's name: ")
+        while True:
+            try:
+                phone = normalize_phone(ask("Phone number with country code, e.g. +961 3 123 456: "))
+                break
+            except ValueError as error:
+                print(f"  {error}")
+        if db.scalar(select(User).where(User.phone == phone)):
+            sys.exit("That phone number already has a login.")
+        has_owner = db.scalar(select(User).where(User.store_id == store.id, User.role == UserRole.OWNER))
+        if has_owner is None:
+            role = UserRole.OWNER
+            print("This store has no owner yet, so this member will be the owner.")
+        else:
+            pick = input("Role: [m]anager or [s]taff? [s] ").strip().lower()
+            role = UserRole.MANAGER if pick == "m" else UserRole.STAFF
 
         password = getpass.getpass("Password (at least 10 characters): ")
         if len(password) < 10:
@@ -65,9 +78,9 @@ def main() -> None:
         if getpass.getpass("Password again: ") != password:
             sys.exit("Passwords do not match. Stopped.")
 
-        db.add(User(store_id=store.id, name=name, email=email, password_hash=hash_password(password), role=role))
+        db.add(User(store_id=store.id, name=name, phone=phone, password_hash=hash_password(password), role=role))
         db.commit()
-        print(f"Created {role.value} login for {email} at {store.name}.")
+        print(f"Created {role.value} login for {phone} at {store.name}.")
 
 
 if __name__ == "__main__":

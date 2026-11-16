@@ -22,6 +22,7 @@ class OrderResponse(BaseModel):
     ready_at: datetime | None = None
     completed_at: datetime | None = None
     customer_coming_at: datetime | None = None
+    customer_seen_at: datetime | None = None
     scanned_at: datetime | None = None
     ring_requested_at: datetime | None = None
 

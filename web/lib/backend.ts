@@ -28,6 +28,7 @@ export type BackendOrder = {
   ready_at: string | null;
   completed_at: string | null;
   customer_coming_at: string | null;
+  customer_seen_at: string | null;
   scanned_at: string | null;
   ring_requested_at: string | null;
 };
@@ -96,7 +97,7 @@ export type BackendQr = {
 };
 
 /** Forwards a customer's request for a QR token to the backend, as is. */
-export async function proxyTrack(token: string, action: "" | "/scan" | "/coming" = "") {
+export async function proxyTrack(token: string, action: "" | "/scan" | "/seen" | "/coming" = "") {
   const headers = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" };
   try {
     const res = await backend(`/track/${encodeURIComponent(token)}${action}`, {

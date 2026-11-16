@@ -1,5 +1,6 @@
 .qt-stage {
-  --card: min(78vw, 46dvh, 360px);
+  /* the slip's width: nearly the screen, but never huge */
+  --w: min(84vw, 380px);
   /* Defaults; the store's design overrides these inline (see lib/design.ts). */
   --bg: #0a0b0d;
   --ink: #eceef1;
@@ -9,27 +10,18 @@
   --paper: #f3f4f6;
   --paper-ink: #0b0c0e;
   --line: color-mix(in srgb, var(--ink) 16%, transparent);
-  --paper-muted: color-mix(in srgb, var(--paper-ink) 62%, var(--paper));
 
   position: relative;
   flex: 1;
   min-height: 100dvh;
-  overflow: hidden;
-  display: grid;
-  grid-template-rows: auto 1fr auto auto;
+  overflow-x: clip;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   color: var(--ink);
   background: var(--bg);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
-}
-
-/* Same graphite backdrop as the till screen. */
-.qt-backdrop {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(90% 50% at 50% 42%, color-mix(in srgb, var(--ink) 16%, transparent), transparent 78%),
-    linear-gradient(180deg, color-mix(in srgb, var(--ink) 4%, transparent), transparent 60%, rgba(0, 0, 0, 0.18));
 }
 
 /* The store's own photo, dimmed so the text stays readable. */
@@ -47,131 +39,58 @@
   background: color-mix(in srgb, var(--bg) 62%, transparent);
 }
 
-.qt-logo {
-  max-height: 44px;
-  max-width: 60%;
-  object-fit: contain;
-}
-
-.qt-header {
+.qt-offline {
   position: relative;
   z-index: 1;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 64px;
-  padding: max(20px, env(safe-area-inset-top)) 22px 0;
-}
-
-.qt-store {
-  font-family: var(--font-display), Impact, sans-serif;
-  font-size: 22px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.qt-offline {
+  margin-top: 10px;
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 12px;
   color: var(--muted);
 }
 
-.qt-center {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  padding: 12px 0;
-}
-
-/* ------------------------------------------------------------ order card */
-
-.qt-card {
-  width: var(--card);
-  height: var(--card);
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  padding: 6%;
-  border-radius: 7%;
-  background: var(--paper);
-  color: var(--paper-ink);
-  text-align: center;
-  opacity: 0;
-  transition:
-    box-shadow 0.4s ease,
-    transform 0.9s cubic-bezier(0.2, 0.9, 0.2, 1);
-}
-
-/* While wrapped, the card is the size of the foil's panel (set from JS). */
-.qt-card:not([data-shown="true"]) {
-  transform: scale(var(--wrap-scale, 1));
-}
-
-/* Shown just before the foil parts: wait for the seam to open, then grow. */
-.qt-card[data-shown="true"] {
-  transition-delay: 0s, 0.8s;
-}
-
-.qt-card[data-shown="true"] {
-  opacity: 1;
-}
-
-.qt-label {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: calc(var(--card) * 0.04);
-  letter-spacing: 0.04em;
-  color: var(--paper-muted);
-}
-
-.qt-number {
-  font-family: var(--font-display), Impact, sans-serif;
-  font-size: calc(var(--card) * 0.46);
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
+/* ------------------------------------------------------------ on the slip */
 
 .qt-status {
-  margin-top: calc(var(--card) * 0.02);
-  font-size: calc(var(--card) * 0.075);
-  font-weight: 600;
+  margin-top: 0.1em;
+  display: inline-block;
+  padding: 0.1em 0.5em;
+  font-size: 1.3em;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
 .qt-statusAlt {
-  font-size: calc(var(--card) * 0.045);
-  color: var(--paper-muted);
+  font-size: 0.85em;
+  color: #6d7078;
 }
 
 .qt-steps {
   display: flex;
+  justify-content: center;
   gap: 6px;
-  margin-top: calc(var(--card) * 0.06);
+  margin-top: 0.9em;
 }
 
 .qt-steps li {
-  width: calc(var(--card) * 0.13);
+  width: 3em;
   height: 4px;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--paper-ink) 14%, transparent);
+  background: rgba(17, 17, 19, 0.14);
   transition: background 0.4s ease;
 }
 
 .qt-steps li[data-done="true"] {
-  background: var(--paper-ink);
+  background: #111113;
 }
 
-.qt-stage[data-status="ready"] .qt-card {
-  box-shadow: 0 0 0 4px var(--ok), 0 0 60px color-mix(in srgb, var(--ok) 35%, transparent);
+/* Ready: the status gets stamped in the store's colour. */
+.qt-stage[data-status="ready"] .qt-status {
+  background: var(--ok);
+  color: var(--on-ok);
 }
 
-.qt-stage[data-status="ready"] .qt-steps li[data-done="true"] {
-  background: var(--paper-ink);
-}
-
-.qt-stage[data-status="cancelled"] .qt-number {
-  color: var(--paper-muted);
+.qt-stage[data-status="cancelled"] .rc-number {
+  color: #6d7078;
   text-decoration: line-through;
   text-decoration-thickness: 0.05em;
 }
@@ -185,18 +104,9 @@
   justify-items: center;
   align-content: start;
   gap: 12px;
+  width: 100%;
   min-height: 170px;
-  padding: 8px 22px 20px;
-  opacity: 0;
-  transform: translateY(10px);
-  transition:
-    opacity 0.4s ease,
-    transform 0.4s ease;
-}
-
-.qt-actions[data-shown="true"] {
-  opacity: 1;
-  transform: none;
+  padding: 26px 22px 20px;
 }
 
 .qt-button {
@@ -402,7 +312,7 @@
 .qt-problem {
   position: relative;
   z-index: 1;
-  grid-row: 1 / -1;
+  flex: 1;
   display: grid;
   place-content: center;
   justify-items: center;
@@ -423,21 +333,16 @@
   color: var(--muted);
 }
 
-/* ------------------------------------------------------------------ foil */
-
-.qt-foil {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
 /* ---------------------------------------------------------------- motion */
 
 @media (prefers-reduced-motion: no-preference) {
-  .qt-stage[data-ringing="true"] .qt-card {
+  /* the buttons appear once the slip has finished printing */
+  .qt-actions,
+  .qt-extras {
+    animation: qt-in 0.5s ease 1.5s backwards;
+  }
+  .qt-stage[data-ringing="true"] .rc-receipt {
+    transform-origin: 50% 0;
     animation: qt-ring 0.9s ease-in-out infinite;
   }
   .qt-stage[data-ringing="true"] .qt-primary {
@@ -445,10 +350,15 @@
   }
 }
 
+@keyframes qt-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
 @keyframes qt-ring {
   0%, 100% { transform: rotate(0); }
-  10%, 30% { transform: rotate(-2.2deg); }
-  20%, 40% { transform: rotate(2.2deg); }
+  10%, 30% { transform: rotate(-1.6deg); }
+  20%, 40% { transform: rotate(1.6deg); }
   50% { transform: rotate(0); }
 }
 

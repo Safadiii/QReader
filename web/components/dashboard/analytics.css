@@ -1,15 +1,11 @@
 .an-page {
-  --ink: #eceef1;
-  --muted: #8d929b;
-  --line: rgba(236, 238, 241, 0.14);
-  --grid: rgba(236, 238, 241, 0.08);
-  --panel: #131418;
+  --grid: rgba(20, 24, 32, 0.08);
   /* One hue for magnitude: dim for few orders, bright for many. */
-  --seq-1: #2f3b4d;
-  --seq-2: #4b6384;
-  --seq-3: #7d9dc6;
-  --seq-4: #cfe0f7;
-  --mark: #9db8dc;
+  --seq-1: #d4d8df;
+  --seq-2: #a1a9b6;
+  --seq-3: #5f6877;
+  --seq-4: #1c2027;
+  --mark: var(--ink);
 }
 
 .an-top {
@@ -22,11 +18,10 @@
 }
 
 .an-title {
-  font-family: var(--font-display), Impact, sans-serif;
-  font-size: 34px;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
   line-height: 1;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
 }
 
 .an-sub {
@@ -49,7 +44,8 @@
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--raise);
+  box-shadow: var(--shadow);
   color: var(--ink);
   font: inherit;
   font-size: 14px;
@@ -69,9 +65,9 @@
 .an-notice {
   margin-bottom: 16px;
   padding: 12px 16px;
-  border: 1px solid #f0c36a;
+  border: 1px solid var(--warn);
   border-radius: 12px;
-  color: #f0c36a;
+  color: var(--warn);
   font-size: 15px;
 }
 
@@ -89,6 +85,7 @@
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--panel);
+  box-shadow: var(--shadow);
 }
 
 .an-tiles dt {
@@ -98,8 +95,9 @@
 
 .an-tiles dd {
   margin-top: 6px;
-  font-family: var(--font-display), Impact, sans-serif;
-  font-size: 30px;
+  font-family: var(--font-body), sans-serif;
+  font-size: 26px;
+  font-weight: 400;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -111,7 +109,8 @@
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: var(--panel);
+  background: var(--raise);
+  box-shadow: var(--shadow);
 }
 
 .an-cardTop {
@@ -213,7 +212,7 @@
 }
 
 .an-barSlot:hover {
-  background: rgba(236, 238, 241, 0.05);
+  background: rgba(20, 24, 32, 0.05);
 }
 
 .an-xLabels {
@@ -237,7 +236,7 @@
   padding: 6px 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #23262d;
+  background: var(--raise-2);
   color: var(--ink);
   font-size: 12px;
   line-height: 1.35;
@@ -289,7 +288,7 @@
   position: relative;
   height: 24px;
   border-radius: 4px;
-  background: rgba(236, 238, 241, 0.04);
+  background: rgba(20, 24, 32, 0.04);
 }
 
 .an-cell[data-level="1"],
@@ -341,7 +340,8 @@
   position: sticky;
   top: 0;
   padding: 8px 10px;
-  background: var(--panel);
+  background: var(--raise);
+  box-shadow: var(--shadow);
   color: var(--muted);
   font-weight: 500;
   text-align: left;

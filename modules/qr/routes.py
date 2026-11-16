@@ -68,6 +68,13 @@ def scan_order(token: str, response: Response, db: Session = Depends(get_db)):
     return QRService(db).scan(token)
 
 
+@router.post("/track/{token}/seen", response_model=PublicOrderResponse)
+def customer_seen(token: str, response: Response, db: Session = Depends(get_db)):
+    """The customer opened the page after the order became ready: the kitchen sees "Seen"."""
+    _no_store(response)
+    return QRService(db).seen(token)
+
+
 @router.post("/track/{token}/coming", response_model=PublicOrderResponse)
 def customer_coming(token: str, response: Response, db: Session = Depends(get_db)):
     """The customer tells the kitchen they are on their way to collect a ready order."""

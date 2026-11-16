@@ -5,7 +5,9 @@ from modules.auth.routes import router as auth_router
 from modules.notifications.routes import router as notifications_router
 from modules.orders.routes import router as orders_router
 from modules.qr.routes import router as qr_router
+from modules.screens.routes import router as screens_router
 from modules.stores.routes import router as stores_router
+from modules.team.routes import router as team_router
 
 app = FastAPI(title="QREADER API")
 
@@ -16,6 +18,8 @@ app.include_router(orders_router, prefix="/api/v1", dependencies=protected)
 app.include_router(qr_router, prefix="/api/v1", dependencies=protected)
 app.include_router(notifications_router, prefix="/api/v1", dependencies=protected)
 app.include_router(stores_router, prefix="/api/v1", dependencies=protected)
+app.include_router(team_router, prefix="/api/v1", dependencies=protected)
+app.include_router(screens_router, prefix="/api/v1", dependencies=protected)
 
 @app.get("/health")
 def health_check():
