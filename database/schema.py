@@ -584,3 +584,130 @@ class LoyaltyIdentity(Base):
 Index("idx_loyalty_cards_store", LoyaltyCard.store_id)
 Index("idx_loyalty_stamps_card", LoyaltyStamp.card_id)
 Index("idx_loyalty_redemptions_card", LoyaltyRedemption.card_id, LoyaltyRedemption.created_at.desc())
+
+
+# ---------------------------------------------------------------------------
+# Mobile orders and the digital menu.
+# ---------------------------------------------------------------------------
+
+class MobileOrderSettings(Base):
+    """How customers may get an order that was placed from their phone. One row per store."""
+    __tablename__ = "mobile_order_settings"
+
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), primary_key=True
+    )
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("FALSE"))
+    collect_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("TRUE"))
+    car_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("FALSE"))
+    table_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("FALSE"))
+    # How many tables there are, to print a QR for each (0 = not set).
+    table_count: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    # "always", or "custom" with opens/closes as HH:MM in the store's timezone.
+    hours_mode: Mapped[str] = mapped_column(String(10), nullable=False, server_default=text("'always'"))
+    opens: Mapped[str] = mapped_column(String(5), nullable=False, server_default=text("'08:00'"))
+    closes: Mapped[str] = mapped_column(String(5), nullable=False, server_default=text("'22:00'"))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+
+
+class OrderDelivery(Base):
+    """Where the customer wants one order brought: they collect, the car, or the table."""
+    __tablename__ = "order_deliveries"
+
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), primary_key=True
+    )
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False
+    )
+    mode: Mapped[str] = mapped_column(String(10), nullable=False)  # collect | car | table
+    car_plate: Mapped[str | None] = mapped_column(String(12))
+    car_note: Mapped[str | None] = mapped_column(String(60))  # "by the tree"
+    car_color: Mapped[str | None] = mapped_column(String(20))  # a key from the colour list
+    car_model: Mapped[str | None] = mapped_column(String(40))  # "Renault Clio"
+    table_label: Mapped[str | None] = mapped_column(String(20))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )
+
+    __table_args__ = (Index("ix_order_deliveries_store", "store_id"),)
+
+
+class MenuSettings(Base):
+    __tablename__ = "menu_settings"
+
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), primary_key=True
+    )
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("FALSE"))
+    currency: Mapped[str] = mapped_column(String(4), nullable=False, server_default=text("'₺'"))
+    note: Mapped[str] = mapped_column(String(200), nullable=False, server_default=text("''"))
+
+
+class MenuItem(Base):
+    __tablename__ = "menu_items"
+    __table_args__ = (
+        CheckConstraint("price_cents >= 0", name="ck_menu_price"),
+        Index("ix_menu_items_store", "store_id", "position"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False
+    )
+    category: Mapped[str] = mapped_column(String(40), nullable=False, server_default=text("''"))
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    description: Mapped[str] = mapped_column(String(200), nullable=False, server_default=text("''"))
+    price_cents: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    available: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("TRUE"))
+    position: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+
+
+class MobileOrder(Base):
+    """An order a customer placed from the menu on their phone (cashier orders have no row here)."""
+    __tablename__ = "mobile_orders"
+
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), primary_key=True
+    )
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False
+    )
+    customer_name: Mapped[str] = mapped_column(String(40), nullable=False, server_default=text("''"))
+    note: Mapped[str] = mapped_column(String(200), nullable=False, server_default=text("''"))
+    total_cents: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+
+
+class OrderItem(Base):
+    __tablename__ = "order_items"
+    __table_args__ = (CheckConstraint("qty BETWEEN 1 AND 20", name="ck_order_items_qty"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    qty: Mapped[int] = mapped_column(Integer, nullable=False)
+    unit_cents: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class MenuPhoto(Base):
+    """A photo of a menu item. Keyed by the item's id, with no foreign key: saving the menu
+    re-creates its rows, and the photos must survive that."""
+    __tablename__ = "menu_photos"
+
+    item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    store_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False, index=True
+    )
+    content_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("NOW()")
+    )

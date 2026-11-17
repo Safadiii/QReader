@@ -7,9 +7,25 @@ import { tt, useLang, type Lang } from "@/lib/i18n";
 import { OrderNumber } from "@/components/ui/OrderNumber";
 import { useMe } from "@/lib/use-me";
 import { QrSlip } from "./QrSlip";
+import { TurkishPlate } from "@/components/mobile/TurkishPlate";
+import { colorOf } from "@/components/mobile/colors";
 import type { Order, Status } from "./types";
 
 const POLL_MS = 2000;
+
+type Delivery = {
+  mode: string;
+  car_plate: string | null;
+  car_note: string | null;
+  car_color: string | null;
+  car_model: string | null;
+  table_label: string | null;
+  phone_order: boolean;
+  customer_name: string;
+  note: string;
+  total_cents: number;
+  lines: { name: string; qty: number }[];
+};
 
 const COLUMNS: { status: Status; tr: string; en: string; emptyTr: string; emptyEn: string }[] = [
   { status: "pending", tr: "Yeni", en: "New", emptyTr: "Yeni sipariş yok", emptyEn: "No new orders" },
@@ -81,6 +97,8 @@ export function KitchenScreen({ embedded = false }: Props) {
   /** Orders whose customer has a free reward waiting, and what the reward is called. */
   const [rewards, setRewards] = useState<string[]>([]);
   const [rewardName, setRewardName] = useState("");
+  /** Where customers want their order: their car (with plate) or table. */
+  const [deliveries, setDeliveries] = useState<Record<string, Delivery>>({});
   const [slip, setSlip] = useState<{ order: Order; x: number; y: number } | null>(null);
   const refresh = useCallback(async () => {
     try {
@@ -90,6 +108,9 @@ export function KitchenScreen({ embedded = false }: Props) {
       if (!res.ok) throw new Error(body.error ?? tt("Siparişler yüklenemedi.", "Can't load orders."));
       setOrders(body.orders);
       setRewards(Array.isArray(body.rewards) ? body.rewards : []);
+      setDeliveries(
+        Object.fromEntries((Array.isArray(body.deliveries) ? body.deliveries : []).map((d: { order_id: string }) => [d.order_id, d])),
+      );
       setOffline(null);
     } catch (err) {
       setOffline(
@@ -118,7 +139,8 @@ export function KitchenScreen({ embedded = false }: Props) {
   }, [refresh]);
 
   const todays = (orders ?? []).filter((o) => o.order_date === today());
-  const nextNumber = todays.reduce((max, o) => Math.max(max, o.order_number), 0) + 1;
+  // Phone orders are numbered from 1001, so they must not push the till's numbers up.
+  const nextNumber = todays.reduce((max, o) => (o.order_number <= 1000 ? Math.max(max, o.order_number) : max), 0) + 1;
   const numberValue = typed ?? String(nextNumber);
 
   const addOrder = async (e: React.FormEvent) => {
@@ -216,6 +238,42 @@ export function KitchenScreen({ embedded = false }: Props) {
     const next = NEXT[o.status];
     return (
       <div className="kd-actions">
+        {deliveries[o.id]?.phone_order && (
+          <div className="kd-items">
+            <span>
+              {t("Telefondan sipariş", "Phone order")}
+              {deliveries[o.id].customer_name ? ` · ${deliveries[o.id].customer_name}` : ""}
+            </span>
+            <ul>
+              {deliveries[o.id].lines.map((l, i) => (
+                <li key={i}>
+                  <b>{l.qty}×</b> {l.name}
+                </li>
+              ))}
+            </ul>
+            {deliveries[o.id].note && <small>“{deliveries[o.id].note}”</small>}
+          </div>
+        )}
+        {deliveries[o.id] && deliveries[o.id].mode !== "collect" && (
+          <div className="kd-deliver" data-mode={deliveries[o.id].mode}>
+            <span>{deliveries[o.id].mode === "car" ? t("Arabaya", "To the car") : t("Masaya", "To the table")}</span>
+            {deliveries[o.id].mode === "car" && deliveries[o.id].car_plate ? (
+              <TurkishPlate value={deliveries[o.id].car_plate ?? ""} size="sm" />
+            ) : (
+              <b>{deliveries[o.id].table_label}</b>
+            )}
+            {(deliveries[o.id].car_color || deliveries[o.id].car_model || deliveries[o.id].car_note) && (
+              <small className="kd-car">
+                {colorOf(deliveries[o.id].car_color) && (
+                  <i style={{ background: colorOf(deliveries[o.id].car_color)?.hex }} aria-hidden />
+                )}
+                {[colorOf(deliveries[o.id].car_color)?.[lang === "tr" ? "tr" : "en"], deliveries[o.id].car_model, deliveries[o.id].car_note]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </small>
+            )}
+          </div>
+        )}
         {rewards.includes(o.id) && (
           <button className="kd-reward" disabled={busy !== null} onClick={() => void giveReward(o)}>
             <svg viewBox="0 0 24 24" aria-hidden>

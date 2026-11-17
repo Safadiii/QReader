@@ -15,6 +15,7 @@ import { Receipt, ReceiptPrinter } from "@/components/receipt/Receipt";
 import { StampCard, type CardState } from "@/components/loyalty/StampCard";
 import { SaveStamps } from "@/components/loyalty/SaveStamps";
 import { deviceSecret, rememberDevice } from "@/lib/device";
+import { DeliveryPick } from "@/components/mobile/DeliveryPick";
 import "./track.css";
 
 type Status = "pending" | "preparing" | "ready" | "collected" | "cancelled";
@@ -362,6 +363,10 @@ export function TrackView({ token, preview = false }: Props) {
           </ReceiptPrinter>
 
           {order && problem === "offline" && <div className="qt-offline">Yeniden bağlanıyor…</div>}
+
+          {!preview && order && ["pending", "preparing", "ready"].includes(order.status) && (
+            <DeliveryPick token={token} lang={lang} />
+          )}
 
           {/* Hangs under the slip once it has printed. */}
           {order && card && (

@@ -6,6 +6,8 @@ import "./extras.css";
 import { SaveBar } from "./SaveBar";
 import { useLang } from "@/lib/i18n";
 import { StampCard, prettyCode, type CardState } from "@/components/loyalty/StampCard";
+import { MobileOrdersPanel } from "@/components/mobile/MobileOrdersPanel";
+import { MenuPanel } from "@/components/mobile/MenuPanel";
 
 type Program = { enabled: boolean; stamps_required: number; reward_name: string };
 type Stats = {
@@ -103,6 +105,9 @@ export function ExtrasView() {
       <p className="fm-sub">{t("Kafeniz için eklentiler", "Add-ons for your café")}</p>
 
       {error && <div className="fm-notice">{error}</div>}
+
+      <MobileOrdersPanel />
+      <MenuPanel />
 
       <section className="fm-card ex-feature">
         <header className="ex-head">

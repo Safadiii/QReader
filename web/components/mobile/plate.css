@@ -1,0 +1,91 @@
+/* A Turkish number plate: white, black type, blue band with TR on the left. */
+
+.tp {
+  --tp-h: 52px;
+  display: inline-flex;
+  align-items: stretch;
+  height: var(--tp-h);
+  max-width: 100%;
+  overflow: hidden;
+  border: 2px solid #1b1512;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 0 #fff inset, 0 4px 10px -6px rgba(27, 21, 18, 0.5);
+  color: #111;
+}
+.tp[data-size="sm"] { --tp-h: 30px; border-width: 1.5px; border-radius: 6px; }
+.tp[data-size="lg"] { --tp-h: 72px; border-radius: 11px; }
+
+.tp-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: none;
+  width: calc(var(--tp-h) * 0.62);
+  background: #0a3d91;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: calc(var(--tp-h) * 0.26);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tp-band i { display: none; }
+
+.tp-text {
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--tp-h) * 0.3);
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+  font-size: calc(var(--tp-h) * 0.58);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.tp-text[data-empty="true"] { color: #bdb7b0; }
+
+/* the typing version */
+.tp-input {
+  display: flex;
+  width: 100%;
+  max-width: 380px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tp-input:focus-within { border-color: var(--accent, #e4572e); box-shadow: 0 0 0 4px rgba(228, 87, 46, 0.2); }
+.tp-input[data-valid="true"] { border-color: var(--ready, #1f9d55); }
+
+.tp-fields {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 8px;
+}
+
+.tp-f {
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: #111;
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+  font-size: calc(var(--tp-h) * 0.48);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+}
+.tp-f::placeholder { color: #d3cec8; }
+.tp-f-p { width: 1.45em; flex: none; }
+.tp-f-l { width: 2.4em; flex: none; }
+.tp-f-d { width: 2.6em; flex: none; }
+.tp-f:disabled { opacity: 0.6; }
+
+/* the plate itself shows focus (ring around it), so the fields keep no outline of their own */
+.tp-input .tp-f:focus,
+.tp-input .tp-f:focus-visible { outline: none; box-shadow: none; }

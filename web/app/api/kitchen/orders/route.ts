@@ -18,16 +18,20 @@ export async function GET(request: Request) {
     // Orders whose customer has a free reward waiting, for the badge on the ticket.
     // Never allowed to break the board: no reward list is just no badges.
     let rewards: string[] = [];
+    // Where each customer wants their order: their car (with plate) or table.
+    let deliveries: unknown[] = [];
     try {
       const me = await staffSession(request);
       if (me) {
         const w = await backend(`/stores/${store}/loyalty/waiting?actor_id=${me.userId}`);
         if (w.ok) rewards = (await w.json()).order_ids ?? [];
+        const d = await backend(`/stores/${store}/deliveries?actor_id=${me.userId}`);
+        if (d.ok) deliveries = (await d.json()).items ?? [];
       }
     } catch {
       /* keep going without badges */
     }
-    return json({ orders: await res.json(), rewards });
+    return json({ orders: await res.json(), rewards, deliveries });
   } catch {
     return json({ error: "Backend unreachable." }, 502);
   }

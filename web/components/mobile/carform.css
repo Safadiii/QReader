@@ -1,0 +1,24 @@
+.cf {
+  display: grid; gap: 16px; max-width: 520px; margin: 0 auto; padding: 24px 16px 48px;
+  font-family: var(--font-body), system-ui, sans-serif; color: var(--ink);
+}
+.cf header { display: grid; gap: 6px; }
+.cf-store { font-family: var(--font-mono), monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+.cf h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+.cf header p:last-child { font-size: 15px; color: var(--muted); }
+.cf-have { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1.5px solid var(--line-strong); border-radius: 12px; background: #fff; font-size: 15px; cursor: pointer; }
+.cf-have input { width: 20px; height: 20px; accent-color: var(--accent); }
+.cf-field { display: grid; gap: 6px; }
+.cf-field > span { font-size: 13px; color: var(--muted); }
+.cf-field input, .cf-field textarea {
+  min-height: 48px; padding: 10px 12px; border: 1.5px solid var(--line-strong); border-radius: 10px;
+  background: #fff; color: var(--ink); font: inherit; font-size: 16px; resize: vertical;
+}
+.cf-field .tp-f { min-height: 0; padding: 0; border: 0; background: transparent; }
+.cf-menu { font-size: 14px; color: var(--accent); }
+.cf .cd-label { color: var(--muted); opacity: 1; }
+.cf-hint { font-size: 14px; color: var(--muted); }
+.cf-error { font-size: 14px; color: #c0392b; }
+.cf-closed { padding: 18px; border: 1.5px dashed var(--line-strong); border-radius: 14px; color: var(--muted); }
+.cf-send { min-height: 56px; border: 0; border-radius: 14px; background: var(--accent); color: #fff; font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; }
+.cf-send:disabled { opacity: 0.4; cursor: default; }

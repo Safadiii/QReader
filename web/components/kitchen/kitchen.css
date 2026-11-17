@@ -431,3 +431,47 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* a customer who wants it brought out: the car's plate, or the table */
+.kd-deliver {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  flex-basis: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff4ea;
+  border: 1px solid #f3c9b6;
+}
+.kd-deliver > span {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--prep);
+}
+.kd-deliver b { font-size: 18px; }
+.kd-deliver small { flex-basis: 100%; font-size: 13px; color: var(--muted); }
+
+/* what a phone order contains */
+.kd-items {
+  flex-basis: 100%;
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f3efe9;
+}
+.kd-items > span {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.kd-items ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; font-size: 15px; }
+.kd-items b { font-variant-numeric: tabular-nums; }
+.kd-items small { font-size: 13px; color: var(--muted); }
+.kd-car { display: inline-flex; align-items: center; gap: 8px; }
+.kd-car i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(27, 21, 18, 0.35); flex: none; }

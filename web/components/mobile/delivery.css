@@ -1,0 +1,39 @@
+/* The customer's "how would you like it?" card, under the receipt. Follows the page's own colours. */
+
+.dp {
+  width: min(100%, 340px);
+  margin: 18px auto 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg, #fff) 88%, var(--ink, #111) 4%);
+  border: 1px solid color-mix(in srgb, var(--ink, #111) 14%, transparent);
+  color: var(--ink, #111);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+.dp h3 { margin: 0 0 10px; font-size: 15px; font-weight: 600; }
+.dp-modes { display: grid; gap: 8px; }
+.dp-mode {
+  min-height: 48px; padding: 0 14px; border-radius: 12px; text-align: left;
+  border: 1.5px solid color-mix(in srgb, var(--ink, #111) 22%, transparent);
+  background: transparent; color: inherit; font: inherit; font-size: 16px; cursor: pointer;
+}
+.dp-mode[data-on="true"] { border-color: var(--ink, #111); background: color-mix(in srgb, var(--ink, #111) 8%, transparent); font-weight: 600; }
+.dp-form { display: grid; gap: 10px; margin-top: 14px; }
+.dp-form > span { font-size: 13px; opacity: 0.7; }
+.dp-input {
+  min-height: 46px; padding: 0 12px; border-radius: 10px; font: inherit; font-size: 16px;
+  border: 1.5px solid color-mix(in srgb, var(--ink, #111) 22%, transparent);
+  background: #fff; color: #111;
+}
+.dp-send {
+  min-height: 48px; border: 0; border-radius: 12px; background: var(--ink, #111); color: var(--bg, #fff);
+  font: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.dp-send:disabled { opacity: 0.4; cursor: default; }
+.dp-error { margin: 8px 0 0; font-size: 14px; color: #c0392b; }
+.dp-done { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.dp-done > div { display: grid; gap: 8px; min-width: 0; }
+.dp-done small { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.65; }
+.dp-done p { margin: 0; font-size: 14px; }
+.dp-done b { font-size: 24px; }
+.dp-link { border: 0; background: none; color: inherit; font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; padding: 4px; }
